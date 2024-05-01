@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <future>
 #include <thread>
+#include "../../mac_opengl/include/GLFW/glfw3.h"
+
 using namespace std;
 
 void func(int sockfd)
@@ -20,6 +22,54 @@ void func(int sockfd)
         }
         buffer[valread] = 0;
         cout << buffer << endl;
+    }
+}
+
+void funcGlfw()
+{
+    if (!glfwInit()) {
+        return;
+    }
+
+    GLFWwindow* window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    if (!window) {
+        glfwTerminate();
+        return ;
+    }
+
+    glfwMakeContextCurrent(window);
+
+    while (!glfwWindowShouldClose(window)) {
+        glClear(GL_COLOR_BUFFER_BIT);
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    glfwTerminate();
+    return ;
+}
+
+void func2(int sockfd)
+{
+    while (1)
+    {
+        string message;
+        cout << "Enter message: ";
+        getline(cin, message);
+        message += '\n';
+
+        if (message == "exit")
+            break;
+
+        if (send(sockfd, message.c_str(), message.size(), 0) == -1)
+        {
+            cerr << "Failed to send message" << endl;
+            return;
+        }
+        else
+        {
+            cout << "Message sent: " << message << endl;
+        }
     }
 }
 
@@ -62,7 +112,9 @@ int main(int ac, char **av)
     }
 
     std::thread t1(func, sockfd);
-    
+    std::thread t2(func2, sockfd);
+    funcGlfw();
+    // std::thread t2(funcGlfw);
 
     while (1)
     {
@@ -84,7 +136,8 @@ int main(int ac, char **av)
             cout << "Message sent: " << message << endl;
         }
     }
-    t1.join();
+    // t1.join();
+    // t2.join();
     close(sockfd);
     return 0;
 }

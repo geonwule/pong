@@ -1,5 +1,9 @@
+HEAD = ../../mac_opengl
 CC = c++
-CFLAGS = -Wall -Wextra -Werror -std=c++11
+
+#for mac
+CFLAGS = -Wall -Wextra -Werror -std=c++11 -I ${HEAD}/include/ -DGL_SILENCE_DEPRECATION
+LFLAGS = -L ${HEAD}/lib-x86_64 -lglfw3 -framework Cocoa -framework IOKit -framework OpenGL
 
 SRCS = srcs/main.cpp
 OBJS = $(SRCS:.cpp=.o)
@@ -7,11 +11,11 @@ NAME = pong_client
 
 all: $(NAME)
 
-$(NAME): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
-
 %.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
+
+$(NAME): $(OBJS)
+	$(CC) $(LFLAGS) $(OBJS) -o $(NAME)
 
 clean:
 	rm -f $(OBJS)
