@@ -3,8 +3,25 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-
+#include <future>
+#include <thread>
 using namespace std;
+
+void func(int sockfd)
+{
+    char buffer[1024] = {0};
+    while (1)
+    {
+        int valread = recv(sockfd, buffer, 1024, 0);
+        if (valread == -1)
+        {
+            cerr << "Failed to receive message" << endl;
+            return;
+        }
+        buffer[valread] = 0;
+        cout << buffer << endl;
+    }
+}
 
 int main(int ac, char **av)
 {
@@ -38,16 +55,21 @@ int main(int ac, char **av)
     }
 
     // Connect to the server
-    if (connect(sockfd, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0)
+    if (connect(sockfd, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0)
     {
         cerr << "Connection failed" << endl;
         return 1;
     }
+
+    std::thread t1(func, sockfd);
+    
+
     while (1)
     {
         string message;
         cout << "Enter message: ";
         getline(cin, message);
+        message += '\n';
 
         if (message == "exit")
             break;
@@ -57,8 +79,12 @@ int main(int ac, char **av)
             cerr << "Failed to send message" << endl;
             return 1;
         }
+        else
+        {
+            cout << "Message sent: " << message << endl;
+        }
     }
-
+    t1.join();
     close(sockfd);
     return 0;
 }
