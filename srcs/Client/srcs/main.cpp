@@ -7,7 +7,80 @@
 #include <thread>
 #include "../../../mac_opengl/include/GLFW/glfw3.h"
 
+#define WIDTH 2000
+#define HEIGHT 1000
+
 using namespace std;
+#include <sstream>
+#include <cmath>
+
+void singlePlay()
+{
+    if (!glfwInit())
+    {
+        return;
+    }
+
+    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "pong", NULL, NULL);
+    if (!window)
+    {
+        glfwTerminate();
+        return;
+    }
+
+    glfwMakeContextCurrent(window);
+
+    unsigned int i = 0;
+    double t = 0.0;
+    double dt = 0.01;
+    while (!glfwWindowShouldClose(window))
+    {
+
+        std::cout << "loop: " << ++i << std::endl;
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        std::stringstream ss;
+        ss << "loop: " << i;
+        glfwSetWindowTitle(window, ss.str().c_str());
+
+        // Calculate circle position
+        float x = 0.5f * std::cos(t);
+        float y = 0.5f * std::sin(2 * t);
+
+        glColor3f(1.0f, 1.0f, 1.0f);
+
+        // Draw a circle at (x, y)
+        glBegin(GL_TRIANGLE_FAN);
+        glVertex2f(x, y);
+        for (int i = 0; i <= 100; i++)
+        {
+            float angle = i * 2.0f * M_PI / 100.0f;
+            glVertex2f(x + std::cos(angle) * 0.1f, y + std::sin(angle) * 0.1f);
+        }
+
+        float angle = i * 2.0f * M_PI / 100.0f;
+        glVertex2f(x + std::cos(angle) * 0.1f, y + std::sin(angle) * 0.1f);
+
+        glEnd();
+        t += dt;
+        // // Draw a bar that changes with i
+        // float barWidth = (float)i / 100.0f; // Adjust this to change the speed of the bar
+        // glBegin(GL_QUADS);
+        // glVertex2f(-1.0f, -1.0f);
+        // glVertex2f(-1.0f + barWidth, -1.0f);
+        // glVertex2f(-1.0f + barWidth, 1.0f);
+        // glVertex2f(-1.0f, 1.0f);
+        // glEnd();
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+
+        usleep(1000);
+    }
+
+    glfwTerminate();
+    return;
+}
 
 void func(int sockfd)
 {
@@ -27,26 +100,29 @@ void func(int sockfd)
 
 void funcGlfw()
 {
-    if (!glfwInit()) {
+    if (!glfwInit())
+    {
         return;
     }
 
-    GLFWwindow* window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
-    if (!window) {
+    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Hello World", NULL, NULL);
+    if (!window)
+    {
         glfwTerminate();
-        return ;
+        return;
     }
 
     glfwMakeContextCurrent(window);
 
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window))
+    {
         glClear(GL_COLOR_BUFFER_BIT);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
     glfwTerminate();
-    return ;
+    return;
 }
 
 void func2(int sockfd)
@@ -75,6 +151,9 @@ void func2(int sockfd)
 
 int main(int ac, char **av)
 {
+    singlePlay();
+    return 0; // test
+
     if (ac != 3)
     {
         cerr << "Usage: " << av[0] << " <ip> <port_num>" << endl;
