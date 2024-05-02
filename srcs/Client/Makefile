@@ -1,10 +1,17 @@
 CXX = c++
 
+GLAD_HEAD = ../../glad/include/glad/
+# ../../glad/include/KHR/
+GLAD_SRCS = ../../glad/src/gl.c
+
 OPNE_GL = ../../mac_opengl
 CLIENT_SRCS_DIR = srcs
-CLIENT_SRCS = ${CLIENT_SRCS_DIR}/main.cpp
+CLIENT_SRCS = ${CLIENT_SRCS_DIR}/main.cpp ${GLAD_SRCS}
 CLIENT_OBJS = $(CLIENT_SRCS:.cpp=.o)
-CLIENT_CFLAGS = -Wall -Wextra -Werror -std=c++11 -I ${OPNE_GL}/include/ -DGL_SILENCE_DEPRECATION
+
+
+CLIENT_CFLAGS = -std=c++11 -I ${OPNE_GL}/include/  -I ${GLAD_HEAD} -DGL_SILENCE_DEPRECATION
+#-Wall -Wextra -Werror 
 CLIENT_LFLAGS = -L ${OPNE_GL}/lib-x86_64 -lglfw3 -framework Cocoa -framework IOKit -framework OpenGL
 CLIENT_NAME = pong_client
 
