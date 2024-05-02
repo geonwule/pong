@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <future>
 #include <thread>
-#include "../../mac_opengl/include/GLFW/glfw3.h"
+#include "../../../mac_opengl/include/GLFW/glfw3.h"
 
 using namespace std;
 
