@@ -1,45 +1,42 @@
-CXX = c++
+SERVER_DIR = srcs/Server
+CLIENT_DIR = srcs/Client
 
-# for server
-SERVER_SRCS_DIR = srcs/Server/srcs
-SERVER_SRCS = ${SERVER_SRCS_DIR}/main.cpp
-SERVER_OBJS = $(SERVER_SRCS:.cpp=.o)
 SERVER_NAME = pong_server
-SERVER_CFLAGS = -Wall -Wextra -Werror -std=c++98
-
-# for client
-OPNE_GL = ./mac_opengl
-CLIENT_SRCS_DIR = srcs/Client/srcs
-CLIENT_SRCS = ${CLIENT_SRCS_DIR}/main.cpp
-CLIENT_OBJS = $(CLIENT_SRCS:.cpp=.o)
-CLIENT_CFLAGS = -Wall -Wextra -Werror -std=c++11 -I ${OPNE_GL}/include/ -DGL_SILENCE_DEPRECATION
-CLIENT_LFLAGS = -L ${OPNE_GL}/lib-x86_64 -lglfw3 -framework Cocoa -framework IOKit -framework OpenGL
 CLIENT_NAME = pong_client
 
-.PHONY: all clean fclean re server client
+#color
+DEF_COLOR = \033[0;39m
+GRAY = \033[0;90m
+RED = \033[0;91m
+GREEN = \033[0;92m
+YELLOW = \033[0;93m
+BLUE = \033[0;94m
+MAGENTA = \033[0;95m
+CYAN = \033[0;96m
+WHITE = \033[0;97m
+
+.PHONY: all server client clean fclean re
 
 all: server client
 
-server: $(SERVER_NAME)
+server:
+	@$(MAKE) -C ${SERVER_DIR}
+	@mv ${SERVER_DIR}/${SERVER_NAME} .
+	@echo "$(GREEN)Server compiled!$(DEF_COLOR)"
 
-client: $(CLIENT_NAME)
-
-${SERVER_SRCS_DIR}/%.o: ${SERVER_SRCS_DIR}/%.cpp
-	$(CXX) $(SERVER_CFLAGS) -c $< -o $@
-
-${CLIENT_SRCS_DIR}/%.o: ${CLIENT_SRCS_DIR}/%.cpp
-	$(CXX) $(CLIENT_CFLAGS) -c $< -o $@
-
-$(SERVER_NAME): $(SERVER_OBJS)
-	$(CXX) $(SERVER_OBJS) -o $(SERVER_NAME)
-
-$(CLIENT_NAME): $(CLIENT_OBJS)
-	$(CXX) $(CLIENT_LFLAGS) $(CLIENT_OBJS) -o $(CLIENT_NAME)
+client:
+	@$(MAKE) -C ${CLIENT_DIR}
+	@mv ${CLIENT_DIR}/${CLIENT_NAME} .
+	@echo "$(GREEN)Client compiled!$(DEF_COLOR)"
 
 clean:
-	rm -f $(SERVER_OBJS) $(CLIENT_OBJS)
+	@$(MAKE) -C ${SERVER_DIR} clean
+	@$(MAKE) -C ${CLIENT_DIR} clean
+	@echo "$(BLUE)pong object files cleaned!$(DEF_COLOR)"
 
 fclean: clean
-	rm -f $(SERVER_NAME) $(CLIENT_NAME)
+	@rm -f ${SERVER_NAME} ${CLIENT_NAME}
+	@echo "$(YELLOW)pong library files cleaned!$(DEF_COLOR)"
 
 re: fclean all
+	@echo "$(MAGENTA)Cleaned and rebuilt everything for pong!$(DEF_COLOR)"
