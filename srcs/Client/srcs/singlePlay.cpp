@@ -3,6 +3,9 @@
 #include <algorithm> // std::max, std::min 함수를 사용하기 위해 필요합니다.
 #include "../../../mac_opengl/include/GLFW/glfw3.h"
 
+#include "CircleObject.hpp"
+#include "Paddle.hpp"
+
 #define WIDTH 1500
 #define HEIGHT 750
 
@@ -14,12 +17,6 @@
 
 using namespace std;
 
-enum e_paddleMove
-{
-    UP,
-    DOWN,
-    STOP,
-};
 
 int isBallMoving = STOP;
 
@@ -27,29 +24,31 @@ int keyW = 0, keyS = 0, keyUp = 0, keyDown = 0;
 int player1PaddleMove = STOP, player2PaddleMove = STOP;
 
 // Paddle과 Ball의 위치와 속도
-float paddle1Y = 0.0f, paddle2Y = 0.0f, ballX = 0.0f, ballY = 0.0f;
-float paddleSpeed = 0.02f, ballSpeed = 0.01f;
+float paddle1Y = 0.0f, paddle2Y = 0.0f;//, ballX = 0.0f, ballY = 0.0f;
+float paddleSpeed = 0.02f;//, ballSpeed = 0.01f;
 
 // Ball의 방향
-float ballDirX = 1.0f, ballDirY = 1.0f;
+//float ballDirX = 1.0f, ballDirY = 1.0f;
+
+CircleObject ball;
 
 // 플레이어의 목숨
 int player1Lives = 5, player2Lives = 5;
 
-void resetKey()
-{
-    isBallMoving = STOP;
-    ballX = 0.0f;
-    ballY = 0.0f;
-    ballDirX = 1.0f;
-    ballDirY = 1.0f;
+// void resetKey()
+// {
+//     isBallMoving = STOP;
+//     ballX = 0.0f;
+//     ballY = 0.0f;
+//     ballDirX = 1.0f;
+//     ballDirY = 1.0f;
 
-    player1PaddleMove = STOP;
-    player2PaddleMove = STOP;
+//     player1PaddleMove = STOP;
+//     player2PaddleMove = STOP;
 
-    paddle1Y = 0.0f;
-    paddle2Y = 0.0f;
-}
+//     paddle1Y = 0.0f;
+//     paddle2Y = 0.0f;
+// }
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
@@ -76,7 +75,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
             player2PaddleMove = DOWN;
             break;
         case GLFW_KEY_R:
-            resetKey();
+            // resetKey();
             break;
         case GLFW_KEY_ESCAPE:
             cout << "ESC key pressed" << endl;
@@ -138,8 +137,11 @@ void drawPaddle(float x, float y, float width, float height)
     glEnd();
 }
 
-void drawBall(float x, float y, float radius)
+void drawBall()//(float x, float y, float radius)
 {
+    float x = ball.getX();
+    float y = ball.getY();
+    float radius = ball.getRadius();
     float r, g, b;
     hexToRGB(ballColor, r, g, b);
     glColor3f(r, g, b);
@@ -210,30 +212,36 @@ void singlePlay()
     drawPaddle(0.9f, paddle2Y, 0.1f, 0.3f);  // 오른쪽 Paddle
 
     // Ball 그리기
-    ballX += ballDirX * ballSpeed;
-    ballY += ballDirY * ballSpeed;
-    drawBall(ballX, ballY, 0.05f);
+    // ballX += ballDirX * ballSpeed;
+    // ballY += ballDirY * ballSpeed;
+    ball.move();
+    drawBall();
+    // drawBall(ballX, ballY, 0.05f);
 
-    // Ball이 벽이나 Paddle에 부딪히면 방향 변경
-    if (ballX <= -0.9f && ballY >= paddle1Y && ballY <= paddle1Y + 0.3f)
-        ballDirX = -ballDirX; // 왼쪽 Paddle
-    else if (ballX >= 0.9f && ballY >= paddle2Y && ballY <= paddle2Y + 0.3f)
-        ballDirX = -ballDirX; // 오른쪽 Paddle
-    else if (ballY <= -1.0f || ballY >= 1.0f)
-        ballDirY = -ballDirY; // 위쪽 또는 아래쪽 벽
-
-    // Ball이 Paddle을 넘어가면 해당 플레이어의 목숨 감소
-    if (ballX < -0.91f) {
-        player1Lives--;
-        ballX = 0.0f;
-        ballY = 0.0f;
-    }
-    else if (ballX > 0.91f) {
-        player2Lives--;
-        ballX = 0.0f;
-        ballY = 0.0f;
-    }
+    ball.collisions(paddle1Y, paddle2Y);
+    ball.checkLives(player1Lives, player2Lives);
+    
 }
+
+// // Ball이 벽이나 Paddle에 부딪히면 방향 변경
+//     if (ballX <= -0.9f && ballY >= paddle1Y && ballY <= paddle1Y + 0.3f)
+//         ballDirX = -ballDirX; // 왼쪽 Paddle
+//     else if (ballX >= 0.9f && ballY >= paddle2Y && ballY <= paddle2Y + 0.3f)
+//         ballDirX = -ballDirX; // 오른쪽 Paddle
+//     else if (ballY <= -1.0f || ballY >= 1.0f)
+//         ballDirY = -ballDirY; // 위쪽 또는 아래쪽 벽
+
+//     // Ball이 Paddle을 넘어가면 해당 플레이어의 목숨 감소
+//     if (ballX < -0.91f) {
+//         player1Lives--;
+//         ballX = 0.0f;
+//         ballY = 0.0f;
+//     }
+//     else if (ballX > 0.91f) {
+//         player2Lives--;
+//         ballX = 0.0f;
+//         ballY = 0.0f;
+//     }
 
 
 /** 삼각형, 사각형, 점, 선 그리기 **/

@@ -59,8 +59,8 @@ void threadSocketNetwork(int sockfd)
 
 int main(int ac, char **av)
 {
-    // rendering();
-    // return 0;
+    rendering();
+    return 0;
     
     if (ac != 3)
     {
