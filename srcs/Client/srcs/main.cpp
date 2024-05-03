@@ -43,6 +43,7 @@ void error_callback(int error, const char *description)
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
+    (void)window;
     cout << "framebuffer_size_callback" << endl;
     // Viewport를 새 윈도우 크기에 맞게 조정합니다.
     glViewport(0, 0, width, height);
@@ -155,6 +156,7 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 // 마우스 버튼 콜백 함수 정의
 static void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 {
+    (void)window;
     (void)mods;
     switch (action)
     {
@@ -194,6 +196,7 @@ static void mouse_button_callback(GLFWwindow *window, int button, int action, in
 // 마우스 이동 콜백 함수 정의
 static void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 {
+    (void)window;
     cout << "Cursor Position at (" << xpos << " : " << ypos << ")" << endl;
 }
 
