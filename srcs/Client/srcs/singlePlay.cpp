@@ -1,6 +1,6 @@
 #include <iostream>
-#include <string>
-#include <thread>
+#include <sstream>
+#include <algorithm> // std::max, std::min 함수를 사용하기 위해 필요합니다.
 #include "../../../mac_opengl/include/GLFW/glfw3.h"
 
 #define WIDTH 1500
@@ -10,43 +10,9 @@
 #define ballColor "#ffa939"
 #define attackBallColor "#ff396e"
 #define backgroundColor "#27522d"
+#define PI 3.14159265
 
 using namespace std;
-
-void error_callback(int error, const char *description)
-{
-    std::cerr << "GLFW Error (" << error << "): " << description << std::endl;
-}
-
-void framebuffer_size_callback(GLFWwindow *window, int width, int height)
-{
-    (void)window;
-    cout << "framebuffer_size_callback" << endl;
-    // Viewport를 새 윈도우 크기에 맞게 조정합니다.
-    glViewport(0, 0, width, height);
-
-    /** 가로세로 비율에 따라 좌표계 조정(도형등 왜곡 방지) **/
-
-    // 윈도우의 가로 세로 비율을 얻습니다.
-    glfwGetWindowSize(glfwGetCurrentContext(), &width, &height);
-    float aspectRatio = (float)width / (float)height;
-
-    // 좌표계를 조정합니다.
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    if (width >= height)
-    {
-        glOrtho(-aspectRatio, aspectRatio, -1.0, 1.0, -1.0, 1.0);
-    }
-    else
-    {
-        glOrtho(-1.0, 1.0, -1.0 / aspectRatio, 1.0 / aspectRatio, -1.0, 1.0);
-    }
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-}
-
-// 키 콜백함수 정의
 
 enum e_paddleMove
 {
@@ -85,7 +51,7 @@ void resetKey()
     paddle2Y = 0.0f;
 }
 
-static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
     (void)scancode;
     (void)mods;
@@ -133,94 +99,6 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
     }
 }
 
-// 마우스 버튼 콜백 함수 정의
-static void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
-{
-    (void)window;
-    (void)mods;
-    switch (action)
-    {
-    case GLFW_PRESS:
-        switch (button)
-        {
-        case GLFW_MOUSE_BUTTON_LEFT:
-            cout << "Left button pressed" << endl;
-            break;
-        case GLFW_MOUSE_BUTTON_RIGHT:
-            cout << "Right button pressed" << endl;
-            break;
-        default:
-            cout << "Other button pressed" << endl;
-            break;
-        }
-        break;
-    case GLFW_RELEASE:
-        switch (button)
-        {
-        case GLFW_MOUSE_BUTTON_LEFT:
-            cout << "Left button released" << endl;
-            break;
-        case GLFW_MOUSE_BUTTON_RIGHT:
-            cout << "Right button released" << endl;
-            break;
-        default:
-            cout << "Other button released" << endl;
-            break;
-        }
-        break;
-    default:
-        break;
-    }
-}
-
-// 마우스 이동 콜백 함수 정의
-static void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
-{
-    (void)window;
-    cout << "Cursor Position at (" << xpos << " : " << ypos << ")" << endl;
-}
-
-void drawTriangle()
-{
-    glBegin(GL_TRIANGLES);
-    glVertex2f(-0.9f, 0.9f); // 왼쪽 상단 근처
-    glVertex2f(-0.8f, 0.9f); // 조금 오른쪽으로 이동
-    glVertex2f(-0.9f, 0.8f); // 조금 아래로 이동
-    glEnd();
-
-    glBegin(GL_TRIANGLES);
-    glVertex2f(0.9f, 0.9f); // 오른쪽 상단 근처
-    glVertex2f(0.8f, 0.9f); // 조금 왼쪽으로 이동
-    glVertex2f(0.9f, 0.8f); // 조금 아래로 이동
-    glEnd();
-}
-
-void drawRectangle()
-{
-    glBegin(GL_QUADS);
-    glVertex2f(-0.5f, -0.5f);
-    glVertex2f(-0.5f, 0.5f);
-    glVertex2f(0.5f, 0.5f);
-    glVertex2f(0.5f, -0.5f);
-    glEnd();
-}
-
-void drawPoint()
-{
-    glBegin(GL_POINTS);
-    glVertex2f(0.0f, 0.0f);
-    glEnd();
-}
-
-void drawLine()
-{
-    glBegin(GL_LINES);
-    glVertex2f(-0.5f, -0.5f);
-    glVertex2f(0.5f, 0.5f);
-    glEnd();
-}
-
-#include <sstream>
 void hexToRGB(const std::string &hex, float &r, float &g, float &b)
 {
     unsigned int ir, ig, ib;
@@ -259,8 +137,6 @@ void drawPaddle(float x, float y, float width, float height)
     glVertex2f(x, y + height);
     glEnd();
 }
-
-#define PI 3.14159265
 
 void drawBall(float x, float y, float radius)
 {
@@ -310,9 +186,7 @@ void drawLives()
     }
 }
 
-#include <algorithm> // std::max, std::min 함수를 사용하기 위해 필요합니다.
-
-void drawObjects()
+void singlePlay()
 {
 
     // 배경 그리기
@@ -361,65 +235,44 @@ void drawObjects()
     }
 }
 
-void singlePlay()
-{
-    // 오류 콜백 함수 설정
-    glfwSetErrorCallback(error_callback);
 
-    if (!glfwInit())
-    {
-        exit(EXIT_FAILURE);
-    }
+/** 삼각형, 사각형, 점, 선 그리기 **/
+// void drawTriangle()
+// {
+//     glBegin(GL_TRIANGLES);
+//     glVertex2f(-0.9f, 0.9f); // 왼쪽 상단 근처
+//     glVertex2f(-0.8f, 0.9f); // 조금 오른쪽으로 이동
+//     glVertex2f(-0.9f, 0.8f); // 조금 아래로 이동
+//     glEnd();
 
-    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Hello World", NULL, NULL);
-    if (!window)
-    {
-        glfwTerminate();
-        exit(EXIT_FAILURE);
-    }
+//     glBegin(GL_TRIANGLES);
+//     glVertex2f(0.9f, 0.9f); // 오른쪽 상단 근처
+//     glVertex2f(0.8f, 0.9f); // 조금 왼쪽으로 이동
+//     glVertex2f(0.9f, 0.8f); // 조금 아래로 이동
+//     glEnd();
+// }
 
-    glfwMakeContextCurrent(window);
+// void drawRectangle()
+// {
+//     glBegin(GL_QUADS);
+//     glVertex2f(-0.5f, -0.5f);
+//     glVertex2f(-0.5f, 0.5f);
+//     glVertex2f(0.5f, 0.5f);
+//     glVertex2f(0.5f, -0.5f);
+//     glEnd();
+// }
 
-    // 프레임버퍼 사이즈 콜백 설정
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+// void drawPoint()
+// {
+//     glBegin(GL_POINTS);
+//     glVertex2f(0.0f, 0.0f);
+//     glEnd();
+// }
 
-    // 윈도우의 초기 크기를 얻습니다.
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-
-    // 콜백 함수를 최초에 한 번 호출합니다.
-    framebuffer_size_callback(window, width, height);
-
-    // 키 콜백 설정
-    glfwSetKeyCallback(window, key_callback);
-    // 마우스 버튼 콜백 설정
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-    // 마우스 이동 콜백 설정
-    glfwSetCursorPosCallback(window, cursor_position_callback);
-
-    double time;
-
-    while (!glfwWindowShouldClose(window))
-    {
-        // 시간 측정
-        time = glfwGetTime();
-
-        // 백 버퍼 초기화
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        /* 그림 그리기 (백버퍼에)
-        이벤트 처리가 많은 시간을 소모하는 작업이라면,
-        그림 그리는 작업과 이벤트 처리를 별도의 스레드에서 수행하는 것이 더 효율적일 수 있습니다*/
-        drawObjects();
-
-        // 백버퍼와 프론트 버퍼 교환
-        glfwSwapBuffers(window);
-
-        // 이벤트 처리
-        // 앞쪽에서 처리해줘도 문제 X
-        glfwPollEvents();
-    }
-
-    glfwTerminate();
-    return;
-}
+// void drawLine()
+// {
+//     glBegin(GL_LINES);
+//     glVertex2f(-0.5f, -0.5f);
+//     glVertex2f(0.5f, 0.5f);
+//     glEnd();
+// }

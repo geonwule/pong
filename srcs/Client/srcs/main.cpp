@@ -14,17 +14,18 @@ using namespace std;
 #include <sstream>
 #include <cmath>
 
-void singlePlay();
+void rendering();
 
-void func(int sockfd)
+void threadReceiveMessage(int sockfd)
 {
     char buffer[1024] = {0};
     while (1)
     {
         int valread = recv(sockfd, buffer, 1024, 0);
-        if (valread == -1)
+        if (valread <= 0)
         {
             cerr << "Failed to receive message" << endl;
+            exit(1);
             return;
         }
         buffer[valread] = 0;
@@ -32,34 +33,7 @@ void func(int sockfd)
     }
 }
 
-void funcGlfw()
-{
-    if (!glfwInit())
-    {
-        return;
-    }
-
-    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Hello World", NULL, NULL);
-    if (!window)
-    {
-        glfwTerminate();
-        return;
-    }
-
-    glfwMakeContextCurrent(window);
-
-    while (!glfwWindowShouldClose(window))
-    {
-        glClear(GL_COLOR_BUFFER_BIT);
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-    }
-
-    glfwTerminate();
-    return;
-}
-
-void func2(int sockfd)
+void threadSocketNetwork(int sockfd)
 {
     while (1)
     {
@@ -85,9 +59,9 @@ void func2(int sockfd)
 
 int main(int ac, char **av)
 {
-    singlePlay();
-    return 0; // test
-
+    // rendering();
+    // return 0;
+    
     if (ac != 3)
     {
         cerr << "Usage: " << av[0] << " <ip> <port_num>" << endl;
@@ -124,33 +98,13 @@ int main(int ac, char **av)
         return 1;
     }
 
-    std::thread t1(func, sockfd);
-    std::thread t2(func2, sockfd);
-    funcGlfw();
-    // std::thread t2(funcGlfw);
+    std::thread t1(threadReceiveMessage, sockfd);
+    std::thread t2(threadSocketNetwork, sockfd);
 
-    while (1)
-    {
-        string message;
-        cout << "Enter message: ";
-        getline(cin, message);
-        message += '\n';
+    rendering();
 
-        if (message == "exit")
-            break;
-
-        if (send(sockfd, message.c_str(), message.size(), 0) == -1)
-        {
-            cerr << "Failed to send message" << endl;
-            return 1;
-        }
-        else
-        {
-            cout << "Message sent: " << message << endl;
-        }
-    }
-    // t1.join();
-    // t2.join();
+    t1.join();
+    t2.join();
     close(sockfd);
     return 0;
 }
