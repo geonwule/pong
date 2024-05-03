@@ -7,7 +7,14 @@
 #include <thread>
 #include "../../../mac_opengl/include/GLFW/glfw3.h"
 
+#define WIDTH 2000
+#define HEIGHT 1000
+
 using namespace std;
+#include <sstream>
+#include <cmath>
+
+void singlePlay();
 
 void func(int sockfd)
 {
@@ -27,26 +34,29 @@ void func(int sockfd)
 
 void funcGlfw()
 {
-    if (!glfwInit()) {
+    if (!glfwInit())
+    {
         return;
     }
 
-    GLFWwindow* window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
-    if (!window) {
+    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Hello World", NULL, NULL);
+    if (!window)
+    {
         glfwTerminate();
-        return ;
+        return;
     }
 
     glfwMakeContextCurrent(window);
 
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window))
+    {
         glClear(GL_COLOR_BUFFER_BIT);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
     glfwTerminate();
-    return ;
+    return;
 }
 
 void func2(int sockfd)
@@ -75,6 +85,9 @@ void func2(int sockfd)
 
 int main(int ac, char **av)
 {
+    singlePlay();
+    return 0; // test
+
     if (ac != 3)
     {
         cerr << "Usage: " << av[0] << " <ip> <port_num>" << endl;
