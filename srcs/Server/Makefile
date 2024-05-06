@@ -4,7 +4,7 @@ SERVER_SRCS_DIR = srcs
 SERVER_SRCS = ${SERVER_SRCS_DIR}/main.cpp
 SERVER_OBJS = $(SERVER_SRCS:.cpp=.o)
 SERVER_NAME = pong_server
-SERVER_CFLAGS = -Wall -Wextra -Werror -std=c++98
+SERVER_CFLAGS = -Wall -Wextra -Werror -std=c++11
 
 .PHONY: all clean fclean re
 
