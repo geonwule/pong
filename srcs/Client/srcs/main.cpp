@@ -41,6 +41,7 @@ void cleanMemory()
         delete thread_arr[i];
     }
     close(sockfd);
+    std::cout << "Memory cleaned" << std::endl;
 }
 
 std::atomic<bool> atom_stop(false);
@@ -54,6 +55,7 @@ void signalHandler(int signum) {
         std::cout << "Others: Signal " << signum << " received" << std::endl;
     atom_stop = true;
     cleanMemory();
+    exit(signum);
 }
 
 void threadReceiveMessage(int sockfd)
@@ -68,8 +70,9 @@ void threadReceiveMessage(int sockfd)
             if (valread <= 0)
             {
                 cerr << "Failed to receive message" << endl;
-                cleanMemory();
-                exit(1);
+                // cleanMemory();
+                // exit(1);
+                atom_stop = true;
                 return;
             }
             buffer[valread] = 0;
@@ -83,8 +86,9 @@ void threadReceiveMessage(int sockfd)
             if (valread != sizeof(data)) //(valread <= 0)
             {
                 cerr << "Failed to receive GameData" << endl;
-                cleanMemory();
-                exit(1);
+                // cleanMemory();
+                // exit(1);
+                atom_stop = true;
                 return;
             }
             std::cout << "Received GameData" << std::endl;
@@ -96,17 +100,42 @@ void threadSocketNetwork(int sockfd)
 {
     while (!atom_stop)
     {
-        string message;
-        cout << "Enter message: ";
-        getline(cin, message);
-        message += '\n';
+        // string message;
+        // cout << "Enter message: ";
+        // getline(cin, message);
 
+        fd_set set;
+        struct timeval timeout;
+        int rv;
+        char buff[100];
+        FD_ZERO(&set); /* clear the set */
+        FD_SET(0, &set); /* add our file descriptor to the set */
+
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 500000; // 0.5 seconds
+
+        rv = select(1, &set, NULL, NULL, &timeout);
+
+        if(rv == -1)
+            perror("select"); /* an error accured */
+        else if(rv == 0)
+            continue; /* a timeout occured */
+        else
+            read(0, buff, sizeof buff); /* there was data to read */
+
+        std::string message(buff);
         if (message == "exit")
+        {
+            atom_stop = true;
             break;
+        }
+
+        message += '\n';
 
         if (send(sockfd, message.c_str(), message.size(), 0) == -1)
         {
             cerr << "Failed to send message" << endl;
+            atom_stop = true;
             return;
         }
         else
@@ -178,11 +207,6 @@ int main(int ac, char **av)
 
     rendering(data);
 
-    for (int i = 0; i < MAX_THREAD; i++)
-    {
-        thread_arr[i]->join();
-        delete thread_arr[i];
-    }
-    close(sockfd);
+    cleanMemory();
     return 0;
 }

@@ -24,7 +24,9 @@ void sendGameData(const std::string &msg, GameData &data)
                 bytes_sent = send(client.fd, msg.c_str(), msg.size(), 0);
             if (bytes_sent == -1)
             {
-                std::cerr << "Failed to send message to client " << client.id << std::endl;
+                std::cerr << "Disconnected client[" << client.id << "]" << std::endl;
+                // atom_stop = true;
+                // return ;
             }
         }
     }

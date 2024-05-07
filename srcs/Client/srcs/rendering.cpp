@@ -3,6 +3,9 @@
 #include <thread>
 #include "../../../mac_opengl/include/GLFW/glfw3.h"
 #include "GameFrame.hpp"
+#include <atomic>
+
+extern std::atomic<bool> atom_stop;
 
 #define WIDTH 1500
 #define HEIGHT 750
@@ -131,7 +134,7 @@ void rendering(GameData& data)
 
     double time;
 
-    while (!glfwWindowShouldClose(window))
+    while (!glfwWindowShouldClose(window) && !atom_stop)
     {
         // 시간 측정
         time = glfwGetTime();
