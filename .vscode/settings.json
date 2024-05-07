@@ -61,6 +61,7 @@
         "utility": "cpp",
         "vector": "cpp",
         "thread": "cpp",
-        "future": "cpp"
+        "future": "cpp",
+        "csignal": "cpp"
     }
 }

@@ -15,6 +15,10 @@ using namespace std;
 #include <cmath>
 #include "GameFrame.hpp"
 
+#include <csignal>
+#include <atomic>
+
+
 void rendering(GameData &data);
 
 GameData data = {
@@ -23,11 +27,40 @@ GameData data = {
     3, 3,
     0}; // temp
 
+#define MAX_THREAD 2
+std::thread *thread_arr[MAX_THREAD];
+int sockfd;
+
+void cleanMemory()
+{
+    for (int i = 0; i < MAX_THREAD; i++)
+    {
+        if (thread_arr[i] == nullptr)
+            continue;
+        thread_arr[i]->join();
+        delete thread_arr[i];
+    }
+    close(sockfd);
+}
+
+std::atomic<bool> atom_stop(false);
+
+void signalHandler(int signum) {
+    if (signum == SIGINT)
+        std::cout << "SIGINT: Interrupt signal received" << std::endl;
+    else if (signum == SIGTERM)
+        std::cout << "SIGTERM: Termination signal received" << std::endl;
+    else
+        std::cout << "Others: Signal " << signum << " received" << std::endl;
+    atom_stop = true;
+    cleanMemory();
+}
+
 void threadReceiveMessage(int sockfd)
 {
     char buffer[1024] = {0};
     bool isGameStart = false;
-    while (1)
+    while (!atom_stop)
     {
         if (!isGameStart)
         {
@@ -35,6 +68,7 @@ void threadReceiveMessage(int sockfd)
             if (valread <= 0)
             {
                 cerr << "Failed to receive message" << endl;
+                cleanMemory();
                 exit(1);
                 return;
             }
@@ -49,6 +83,7 @@ void threadReceiveMessage(int sockfd)
             if (valread != sizeof(data)) //(valread <= 0)
             {
                 cerr << "Failed to receive GameData" << endl;
+                cleanMemory();
                 exit(1);
                 return;
             }
@@ -59,7 +94,7 @@ void threadReceiveMessage(int sockfd)
 
 void threadSocketNetwork(int sockfd)
 {
-    while (1)
+    while (!atom_stop)
     {
         string message;
         cout << "Enter message: ";
@@ -86,6 +121,9 @@ int main(int ac, char **av)
     // rendering(data);
     // return 0;
 
+    std::signal(SIGINT, signalHandler); // Ctrl + C
+    std::signal(SIGTERM, signalHandler); // kill
+
     if (ac != 3)
     {
         cerr << "Usage: " << av[0] << " <ip> <port_num>" << endl;
@@ -96,7 +134,7 @@ int main(int ac, char **av)
     int port_num = stoi(av[2]);
 
     // Create a socket
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1)
     {
         cerr << "Failed to create socket" << endl;
@@ -122,8 +160,13 @@ int main(int ac, char **av)
         return 1;
     }
 
-    std::thread t1(threadReceiveMessage, sockfd);
-    std::thread t2(threadSocketNetwork, sockfd);
+    for (int i = 0; i < MAX_THREAD; i++)
+    {
+        thread_arr[i] = nullptr;
+    }
+
+    thread_arr[0] = new std::thread(threadReceiveMessage, sockfd);
+    thread_arr[1] = new std::thread(threadSocketNetwork, sockfd);
 
     while (1)
     {
@@ -135,8 +178,11 @@ int main(int ac, char **av)
 
     rendering(data);
 
-    t1.join();
-    t2.join();
+    for (int i = 0; i < MAX_THREAD; i++)
+    {
+        thread_arr[i]->join();
+        delete thread_arr[i];
+    }
     close(sockfd);
     return 0;
 }

@@ -1,7 +1,11 @@
 #include "Socket.hpp"
 #include "GameFrame.hpp"
+#include <atomic>
 
 extern s_Client clients[MAX_CLIENTS];
+extern std::atomic<bool> atom_stop;
+#define MAX_THREAD 2
+extern std::thread *thread_arr[MAX_THREAD];
 
 void sendGameData(const std::string &msg, GameData &data)
 {
@@ -31,10 +35,11 @@ std::thread *thread_sendData = nullptr;
 
 void threadSendData(GameData &data)
 {
-    while (1)
+    while (!atom_stop)
     {
         sendGameData("", data);
     }
+    std::cout << "threadSendData over..." << std::endl;
 }
 
 void inputData(GameData &data, Paddle &p1, Paddle &p2, CircleObject &ball)
@@ -61,12 +66,19 @@ void playGame()
     GameData data;
     sendGameData("Game Start", data);
     std::cout << "Game Start" << std::endl;
-    thread_sendData = new std::thread(threadSendData, std::ref(data));
+    for (int i = 0; i < MAX_THREAD; i++)
+    {
+        if (thread_arr[i] == nullptr)
+        {
+            thread_arr[i] = new std::thread(threadSendData, std::ref(data));       
+            break;
+        }
+    }
 
     Paddle p1(PLAYER1), p2(PLAYER2);
     CircleObject ball;
 
-    while (1)
+    while (!atom_stop)
     {
         // Paddle
         p1.move();
@@ -81,10 +93,11 @@ void playGame()
         usleep(8000);
     }
 
-    if (thread_sendData != nullptr)
-    {
-        thread_sendData->join();
-        delete thread_sendData;
-        thread_sendData = nullptr;
-    }
+    std::cout << "PlayGame over..." << std::endl;
+    // if (thread_sendData != nullptr)
+    // {
+    //     thread_sendData->join();
+    //     delete thread_sendData;
+    //     thread_sendData = nullptr;
+    // }
 }

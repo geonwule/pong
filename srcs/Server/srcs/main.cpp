@@ -13,18 +13,67 @@ int next_id = 0;
 int client_num = 0;
 
 #include <thread>
-std::thread *t1 = nullptr;
+
+#define MAX_THREAD 2
+std::thread *thread_arr[MAX_THREAD];
+
 void playGame();
+
+#include <csignal>
+#include <atomic>
+
+int serv_fd;
+
+void cleanMemory()
+{
+    std::cout << "cleanMemory()... start" << std::endl;
+    for (int i = 0; i < MAX_THREAD; i++)
+    {
+        if (thread_arr[i] == nullptr)
+            continue;
+        std::cout << "thread_arr[" << i << "]->join()..." << std::endl;
+        thread_arr[i]->join();
+        delete thread_arr[i];
+    }
+    std::cout << "thread_arr[]->join()... done" << std::endl;
+
+    close(serv_fd);
+    for (int i = 0; i < MAX_CLIENTS; i++)
+    {
+        if (clients[i].fd > 0)
+            close(clients[i].fd);
+    }
+}
+
+std::atomic<bool> atom_stop(false);
+
+void signalHandler(int signum) {
+    if (signum == SIGINT)
+        std::cout << "SIGINT: Interrupt signal received" << std::endl;
+    else if (signum == SIGTERM)
+        std::cout << "SIGTERM: Termination signal received" << std::endl;
+    else
+        std::cout << "Others: Signal " << signum << " received" << std::endl;
+    atom_stop = true;
+    std::cout << "signalHandler atom_stop = true" << std::endl;
+    cleanMemory();
+}
 
 int main(int ac, char **av)
 {
+    std::signal(SIGINT, signalHandler); // Ctrl + C
+    std::signal(SIGTERM, signalHandler); // kill
+
+    for (int i = 0; i < MAX_THREAD; i++)
+        thread_arr[i] = nullptr;
+
     if (ac != 2)
     {
         error_msg(WRONG_ARG);
     }
 
     int port_num = atoi(av[1]);
-    int serv_fd, new_fd, len;
+    int new_fd, len;
     struct sockaddr_in servaddr, cli;
     // socket create and verification
 
@@ -90,7 +139,7 @@ int main(int ac, char **av)
                     send_all(client.id, ARRIVE, NULL, clients);
                     client_num++;
                     if (client_num == 2)
-                        t1 = new std::thread(playGame);
+                        thread_arr[0] = new std::thread(playGame);
                     // if (t1 != nullptr)
                     // {
                     //     t1->join();
