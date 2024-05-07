@@ -29,13 +29,22 @@ client:
 	@mv ${CLIENT_DIR}/${CLIENT_NAME} .
 	@echo "$(GREEN)Client compiled!$(DEF_COLOR)"
 
+debug:
+	@$(MAKE) -C ${SERVER_DIR} debug
+	@$(MAKE) -C ${CLIENT_DIR} debug
+	@mv ${SERVER_DIR}/${SERVER_NAME}* .
+	@mv ${CLIENT_DIR}/${CLIENT_NAME}* .
+	@echo "$(GREEN)Debug mode enabled!$(DEF_COLOR)"
+
 clean:
 	@$(MAKE) -C ${SERVER_DIR} clean
 	@$(MAKE) -C ${CLIENT_DIR} clean
 	@echo "$(BLUE)pong object files cleaned!$(DEF_COLOR)"
 
 fclean: clean
-	@rm -f ${SERVER_NAME} ${CLIENT_NAME}
+	@$(MAKE) -C ${SERVER_DIR} fclean
+	@$(MAKE) -C ${CLIENT_DIR} fclean
+	@rm -rf ${SERVER_NAME}* ${CLIENT_NAME}*
 	@echo "$(YELLOW)pong library files cleaned!$(DEF_COLOR)"
 
 re: fclean all
