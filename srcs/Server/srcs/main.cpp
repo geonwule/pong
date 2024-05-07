@@ -24,9 +24,8 @@ void playGame();
 
 int serv_fd;
 
-void cleanMemory()
+void cleanThread()
 {
-    std::cout << "cleanMemory()... start" << std::endl;
     for (int i = 0; i < MAX_THREAD; i++)
     {
         if (thread_arr[i] == nullptr)
@@ -34,7 +33,23 @@ void cleanMemory()
         std::cout << "thread_arr[" << i << "]->join()..." << std::endl;
         thread_arr[i]->join();
         delete thread_arr[i];
+        thread_arr[i] = nullptr;
+        std::cout << "thread_arr[" << i << "]->join()... done" << std::endl;
     }
+}
+
+void cleanMemory()
+{
+    std::cout << "cleanMemory()... start" << std::endl;
+    cleanThread();
+    // for (int i = 0; i < MAX_THREAD; i++)
+    // {
+    //     if (thread_arr[i] == nullptr)
+    //         continue;
+    //     std::cout << "thread_arr[" << i << "]->join()..." << std::endl;
+    //     thread_arr[i]->join();
+    //     delete thread_arr[i];
+    // }
     std::cout << "thread_arr[]->join()... done" << std::endl;
 
     close(serv_fd);
@@ -52,17 +67,27 @@ void signalHandler(int signum) {
         std::cout << "SIGINT: Interrupt signal received" << std::endl;
     else if (signum == SIGTERM)
         std::cout << "SIGTERM: Termination signal received" << std::endl;
+    else if (signum == SIGPIPE)
+    {
+        std::cout << "SIGPIPE: Broken pipe signal received" << std::endl;
+        atom_stop = true;
+        cleanThread();
+        return ;
+    }
     else
         std::cout << "Others: Signal " << signum << " received" << std::endl;
     atom_stop = true;
     std::cout << "signalHandler atom_stop = true" << std::endl;
     cleanMemory();
+    exit(signum);
 }
+
 
 int main(int ac, char **av)
 {
     std::signal(SIGINT, signalHandler); // Ctrl + C
     std::signal(SIGTERM, signalHandler); // kill
+    std::signal(SIGPIPE, signalHandler); //SIGPIPE
 
     for (int i = 0; i < MAX_THREAD; i++)
         thread_arr[i] = nullptr;
@@ -139,7 +164,10 @@ int main(int ac, char **av)
                     send_all(client.id, ARRIVE, NULL, clients);
                     client_num++;
                     if (client_num == 2)
+                    {
                         thread_arr[0] = new std::thread(playGame);
+                        client_num = 0;
+                    }
                     // if (t1 != nullptr)
                     // {
                     //     t1->join();
@@ -154,16 +182,16 @@ int main(int ac, char **av)
         for (int i = 0; i < MAX_CLIENTS; i++)
         {
             s_Client &client = clients[i];
-            if (FD_ISSET(client.fd, &read_fds))
+            if (client.fd > 0 && FD_ISSET(client.fd, &read_fds))
             {
                 char buff[BUFFER_SIZE];
                 int read_bytes = recv(client.fd, buff, BUFFER_SIZE - 1, 0);
                 if (read_bytes <= 0)
                 {
+                    std::cout << "Client[" << client.id << "] left" << std::endl;
                     close(client.fd);
                     clients[i].fd = 0;
                     send_all(client.id, LEFT, NULL, clients);
-                    client_num--;
                 }
                 else
                 {
