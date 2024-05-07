@@ -2,6 +2,7 @@
 #include <string>
 #include <thread>
 #include "../../../mac_opengl/include/GLFW/glfw3.h"
+#include "GameFrame.hpp"
 
 #define WIDTH 1500
 #define HEIGHT 750
@@ -9,7 +10,7 @@
 using namespace std;
 
 void singlePlay();
-void multiPlay();
+void multiPlay(GameData& data);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
 void error_callback(int error, const char *description)
@@ -92,7 +93,7 @@ static void cursor_position_callback(GLFWwindow *window, double xpos, double ypo
     cout << "Cursor Position at (" << xpos << " : " << ypos << ")" << endl;
 }
 
-void rendering()
+void rendering(GameData& data)
 {
     // 오류 콜백 함수 설정
     glfwSetErrorCallback(error_callback);
@@ -142,7 +143,7 @@ void rendering()
         이벤트 처리가 많은 시간을 소모하는 작업이라면,
         그림 그리는 작업과 이벤트 처리를 별도의 스레드에서 수행하는 것이 더 효율적일 수 있습니다*/
         // singlePlay();
-        multiPlay();
+        multiPlay(data);
 
         // 백버퍼와 프론트 버퍼 교환
         glfwSwapBuffers(window);

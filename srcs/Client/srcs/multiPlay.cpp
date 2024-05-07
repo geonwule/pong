@@ -5,6 +5,7 @@
 
 #include "CircleObject.hpp"
 #include "Paddle.hpp"
+#include "GameFrame.hpp"
 
 #define WIDTH 1500
 #define HEIGHT 750
@@ -170,23 +171,8 @@ void drawLives(int player1Lives, int player2Lives)
     }
 }
 
-struct GameData {
-    float ball_x;
-    float ball_y;
-    float ball_radius;
 
-    float paddle_width;
-    float paddle_height;
-    float paddle1_x;
-    float paddle1_y;
-    float paddle2_x;
-    float paddle2_y;
-    
-    int player1Lives;
-    int player2Lives;
-};
-
-void multiPlay(GameData data)
+void multiPlay(GameData& data)
 {
     // 배경 그리기
     drawBackground();

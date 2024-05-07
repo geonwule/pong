@@ -134,6 +134,66 @@ char *str_join(char *buf, char *add)
     return (newbuf);
 }
 
+struct GameData
+{
+    float ball_x;
+    float ball_y;
+    float ball_radius;
+
+    float paddle_width;
+    float paddle_height;
+    float paddle1_x;
+    float paddle1_y;
+    float paddle2_x;
+    float paddle2_y;
+
+    int player1Lives;
+    int player2Lives;
+
+    int isGameStart;
+};
+
+int client_num = 0;
+#include <thread>
+std::thread *t1 = nullptr;
+
+GameData data = {
+    0.5f, 0.5f, 0.02f,
+    0.02f, 0.2f, 0.9f, 0.5f, 0.1f, 0.5f,
+    3, 3,
+    1}; // temp
+
+void sendGameData(const std::string &msg = "")
+{
+    for (int i = 0; i < MAX_CLIENTS; i++)
+    {
+        s_Client &client = clients[i];
+        if (client.fd > 0)
+        {
+            ssize_t bytes_sent;
+            if (msg == "")
+            {
+                bytes_sent = send(client.fd, &data, sizeof(data), 0);
+                std::cout << "sendGameData" << std::endl;
+            }
+            else
+                bytes_sent = send(client.fd, msg.c_str(), msg.size(), 0);
+            if (bytes_sent == -1)
+            {
+                std::cerr << "Failed to send message to client " << client.id << std::endl;
+            }
+        }
+    }
+}
+
+void playGame()
+{
+    sendGameData("Game Start");
+    std::cout << "Game Start" << std::endl;
+    while (1)
+        sendGameData();
+}
+
 int main(int ac, char **av)
 {
     if (ac != 2)
@@ -206,6 +266,15 @@ int main(int ac, char **av)
                     client.id = next_id++;
                     client.buff = NULL;
                     send_all(client.id, ARRIVE, NULL);
+                    client_num++;
+                    if (client_num == 2)
+                        t1 = new std::thread(playGame);
+                    // if (t1 != nullptr)
+                    // {
+                    //     t1->join();
+                    //     delete t1;
+                    //     t1 = nullptr;
+                    // }
                     break;
                 }
             }
@@ -223,11 +292,12 @@ int main(int ac, char **av)
                     close(client.fd);
                     clients[i].fd = 0;
                     send_all(client.id, LEFT, NULL);
+                    client_num--;
                 }
                 else
                 {
                     buff[read_bytes] = 0;
-                    std::cout << "test: " << client.id << " :" <<buff; //test
+                    std::cout << "test: " << client.id << " :" << buff; // test
                     client.buff = str_join(client.buff, buff);
                     while (read_bytes == BUFFER_SIZE - 1)
                     {
