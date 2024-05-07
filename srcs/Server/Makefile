@@ -1,7 +1,9 @@
 CXX = c++
 
+HEAD = ./includes
+
 SERVER_SRCS_DIR = srcs
-SERVER_SRCS = ${SERVER_SRCS_DIR}/main.cpp
+SERVER_SRCS = $(wildcard ${SERVER_SRCS_DIR}/*.cpp)
 SERVER_OBJS = $(SERVER_SRCS:.cpp=.o)
 SERVER_NAME = pong_server
 SERVER_CFLAGS = -Wall -Wextra -Werror -std=c++11
@@ -12,7 +14,7 @@ DEBUG_FLAGS = -g -fsanitize=address
 all: $(SERVER_NAME)
 
 %.o: %.cpp
-	$(CXX) $(SERVER_CFLAGS) -c $< -o $@
+	$(CXX) $(SERVER_CFLAGS) -I $(HEAD) -c $< -o $@
 
 $(SERVER_NAME): $(SERVER_OBJS)
 	$(CXX) $(SERVER_OBJS) -o $(SERVER_NAME)

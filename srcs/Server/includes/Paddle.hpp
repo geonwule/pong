@@ -25,6 +25,7 @@ private:
     float speed;*/
     float _width, _height;
     e_paddle _direction;
+    int _life;
     // int player_area;
     Paddle();
 public:
@@ -33,6 +34,7 @@ public:
     Paddle &operator=(const Paddle &other);
     ~Paddle();
 
+    int &getLife() { return _life; }
     float getX() const { return _x; }
     float getY() const { return _y; }
     float getSpeed() const { return _speed; }
@@ -55,7 +57,7 @@ public:
     }
 };
 
-Paddle::Paddle(e_paddle player_num) : AGameElement(0.0f, 0.0f, PADDLE_SPEED), _width(PADDLE_WIDTH), _height(PADDLE_HEIGHT), _direction(STOP)
+Paddle::Paddle(e_paddle player_num) : AGameElement(0.0f, 0.0f, PADDLE_SPEED), _width(PADDLE_WIDTH), _height(PADDLE_HEIGHT), _direction(STOP), _life(5)
 {
     if (player_num == PLAYER1)
         this->_x = -1.0f;

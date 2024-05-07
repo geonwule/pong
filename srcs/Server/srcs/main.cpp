@@ -6,193 +6,15 @@
 #include <string.h>
 #include <stdio.h>
 #include <iostream>
-
-#define MAX_CLIENTS 1024
-#define BUFFER_SIZE 1024
-
-enum e_error
-{
-    WRONG_ARG,
-    FATAL_ERR,
-};
-
-enum e_msg
-{
-    ARRIVE,
-    LEFT,
-    MSG,
-};
-
-struct s_Client
-{
-    int id, fd;
-    char *buff;
-};
+#include "Socket.hpp"
 
 s_Client clients[MAX_CLIENTS];
 int next_id = 0;
-
-void error_msg(enum e_error flag)
-{
-    if (flag == WRONG_ARG)
-        write(2, "Wrong number of arguments\n", strlen("Wrong number of arguments\n"));
-    else if (flag == FATAL_ERR)
-        write(2, "Fatal error\n", strlen("Fatal error\n"));
-    exit(1);
-}
-
-void send_all(int my_id, enum e_msg flag, char *msg)
-{
-    char buff[BUFFER_SIZE];
-    int read_bytes;
-    if (flag == ARRIVE)
-    {
-        read_bytes = sprintf(buff, "server: client %d just arrived\n", my_id);
-    }
-    else if (flag == LEFT)
-    {
-        read_bytes = sprintf(buff, "server: client %d just left\n", my_id);
-    }
-    else if (flag == MSG)
-    {
-        read_bytes = sprintf(buff, "client %d: ", my_id);
-    }
-
-    for (int i = 0; i < MAX_CLIENTS; i++)
-    {
-        s_Client &client = clients[i];
-        if (client.fd > 0 && client.id != my_id)
-        {
-            int bytes_sent = send(client.fd, buff, read_bytes, 0);
-            if (bytes_sent == -1)
-            {
-                std::cerr << "Failed to send message to client " << client.id << std::endl;
-                continue;
-            }
-            if (flag == MSG)
-            {
-                bytes_sent = send(client.fd, msg, strlen(msg), 0);
-                if (bytes_sent == -1)
-                {
-                    std::cerr << "Failed to send message to client " << client.id << std::endl;
-                }
-            }
-        }
-    }
-    // test
-    std::cout << buff;
-    if (flag == MSG)
-        std::cout << msg;
-}
-
-int extract_message(char **buf, char **msg)
-{
-    char *newbuf;
-    int i;
-
-    *msg = 0;
-    if (*buf == 0)
-        return (0);
-    i = 0;
-    while ((*buf)[i])
-    {
-        if ((*buf)[i] == '\n')
-        {
-            newbuf = (char *)calloc(1, sizeof(*newbuf) * (strlen(*buf + i + 1) + 1));
-            if (newbuf == 0)
-                error_msg(FATAL_ERR);
-            strcpy(newbuf, *buf + i + 1);
-            *msg = *buf;
-            (*msg)[i + 1] = 0;
-            *buf = newbuf;
-            return (1);
-        }
-        i++;
-    }
-    return (0);
-}
-
-char *str_join(char *buf, char *add)
-{
-    char *newbuf;
-    int len;
-
-    if (buf == 0)
-        len = 0;
-    else
-        len = strlen(buf);
-    newbuf = (char *)malloc(sizeof(*newbuf) * (len + strlen(add) + 1));
-    if (newbuf == 0)
-        error_msg(FATAL_ERR);
-    newbuf[0] = 0;
-    if (buf != 0)
-    {
-        strcat(newbuf, buf);
-        free(buf);
-    }
-    strcat(newbuf, add);
-    return (newbuf);
-}
-
-struct GameData
-{
-    float ball_x;
-    float ball_y;
-    float ball_radius;
-
-    float paddle_width;
-    float paddle_height;
-    float paddle1_x;
-    float paddle1_y;
-    float paddle2_x;
-    float paddle2_y;
-
-    int player1Lives;
-    int player2Lives;
-
-    int isGameStart;
-};
-
 int client_num = 0;
+
 #include <thread>
 std::thread *t1 = nullptr;
-
-GameData data = {
-    0.5f, 0.5f, 0.02f,
-    0.02f, 0.2f, 0.9f, 0.5f, 0.1f, 0.5f,
-    3, 3,
-    1}; // temp
-
-void sendGameData(const std::string &msg = "")
-{
-    for (int i = 0; i < MAX_CLIENTS; i++)
-    {
-        s_Client &client = clients[i];
-        if (client.fd > 0)
-        {
-            ssize_t bytes_sent;
-            if (msg == "")
-            {
-                bytes_sent = send(client.fd, &data, sizeof(data), 0);
-                std::cout << "sendGameData" << std::endl;
-            }
-            else
-                bytes_sent = send(client.fd, msg.c_str(), msg.size(), 0);
-            if (bytes_sent == -1)
-            {
-                std::cerr << "Failed to send message to client " << client.id << std::endl;
-            }
-        }
-    }
-}
-
-void playGame()
-{
-    sendGameData("Game Start");
-    std::cout << "Game Start" << std::endl;
-    while (1)
-        sendGameData();
-}
+void playGame();
 
 int main(int ac, char **av)
 {
@@ -265,7 +87,7 @@ int main(int ac, char **av)
                     client.fd = new_fd;
                     client.id = next_id++;
                     client.buff = NULL;
-                    send_all(client.id, ARRIVE, NULL);
+                    send_all(client.id, ARRIVE, NULL, clients);
                     client_num++;
                     if (client_num == 2)
                         t1 = new std::thread(playGame);
@@ -291,7 +113,7 @@ int main(int ac, char **av)
                 {
                     close(client.fd);
                     clients[i].fd = 0;
-                    send_all(client.id, LEFT, NULL);
+                    send_all(client.id, LEFT, NULL, clients);
                     client_num--;
                 }
                 else
@@ -310,7 +132,7 @@ int main(int ac, char **av)
                     char *msg;
                     while (extract_message(&clients[i].buff, &msg) > 0)
                     {
-                        send_all(client.id, MSG, msg);
+                        send_all(client.id, MSG, msg, clients);
                         free(msg);
                     }
                 }
