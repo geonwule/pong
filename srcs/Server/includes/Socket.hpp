@@ -10,7 +10,6 @@
 #include <cstring>
 #include <sys/socket.h>
 
-
 enum e_error
 {
     WRONG_ARG,
@@ -31,7 +30,6 @@ struct s_Client
 };
 
 void error_msg(enum e_error flag);
-void send_all(int my_id, enum e_msg flag, char *msg, s_Client *clients);
 int extract_message(char **buf, char **msg);
 char *str_join(char *buf, char *add);
 

@@ -1,45 +1,22 @@
 #include "Socket.hpp"
+#include "Server.hpp"
 #include "GameFrame.hpp"
 #include <atomic>
+#include "Thread.hpp"
 
-extern s_Client clients[MAX_CLIENTS];
 extern std::atomic<bool> atom_stop;
-#define MAX_THREAD 2
-extern std::thread *thread_arr[MAX_THREAD];
-
-void sendGameData(const std::string &msg, GameData &data)
-{
-    for (int i = 0; i < MAX_CLIENTS; i++)
-    {
-        s_Client &client = clients[i];
-        if (client.fd > 0)
-        {
-            ssize_t bytes_sent;
-            if (msg == "")
-            {
-                bytes_sent = send(client.fd, &data, sizeof(data), 0);
-                std::cout << "sendGameData" << std::endl;
-            }
-            else
-                bytes_sent = send(client.fd, msg.c_str(), msg.size(), 0);
-            if (bytes_sent == -1)
-            {
-                std::cerr << "Disconnected client[" << client.id << "]" << std::endl;
-                // atom_stop = true;
-                // return ;
-            }
-        }
-    }
-}
-
-#include <thread>
-std::thread *thread_sendData = nullptr;
 
 void threadSendData(GameData &data)
 {
+    Server *server = Server::getInstance();
+    if (server == nullptr)
+    {
+        std::cerr << "Server::getInstance() failed" << std::endl;
+        return;
+    }
     while (!atom_stop)
     {
-        sendGameData("", data);
+        server->sendGameData("", data);
     }
     std::cout << "threadSendData over..." << std::endl;
 }
@@ -66,16 +43,16 @@ void inputData(GameData &data, Paddle &p1, Paddle &p2, CircleObject &ball)
 void playGame()
 {
     GameData data;
-    sendGameData("Game Start", data);
-    std::cout << "Game Start" << std::endl;
-    for (int i = 0; i < MAX_THREAD; i++)
+    Server *server = Server::getInstance();
+    if (server == nullptr)
     {
-        if (thread_arr[i] == nullptr)
-        {
-            thread_arr[i] = new std::thread(threadSendData, std::ref(data));       
-            break;
-        }
+        std::cerr << "Server::getInstance() failed" << std::endl;
+        return;
     }
+    server->sendGameData("Game Start", data);
+
+    std::cout << "Game Start" << std::endl;
+    Thread::createThread(threadSendData, std::ref(data));
 
     Paddle p1(PLAYER1), p2(PLAYER2);
     CircleObject ball;
@@ -96,10 +73,5 @@ void playGame()
     }
 
     std::cout << "PlayGame over..." << std::endl;
-    // if (thread_sendData != nullptr)
-    // {
-    //     thread_sendData->join();
-    //     delete thread_sendData;
-    //     thread_sendData = nullptr;
-    // }
+
 }

@@ -1,4 +1,9 @@
 #include "Server.hpp"
+#include "GameFrame.hpp"
+#include "Thread.hpp"
+
+extern std::atomic<bool> atom_stop;
+void playGame();
 
 Server *Server::_instance = nullptr;
 
@@ -120,12 +125,14 @@ void Server::handleClientConnections()
                     client.id = next_id++;
                     client.buff = nullptr;
                     client_num++;
-                    send_all(client.id, ARRIVE, nullptr, clients);
-                    // if (client_num == 2)
-                    // {
-                    //     thread_arr[0] = new std::thread(playGame);
-                    //     client_num = 0;
-                    // }
+                    sendAll(client.id, ARRIVE, nullptr);
+                    if (client_num == 2)
+                    {
+                        // thread_arr[0] = new std::thread(playGame);
+                        atom_stop = false;
+                        Thread::createThread(playGame);
+                        client_num = 0;
+                    }
                     break;
                 }
             }
@@ -143,7 +150,7 @@ void Server::handleClientConnections()
                     std::cout << "Client[" << client.id << "] left" << std::endl;
                     close(client.fd);
                     clients[i].fd = 0;
-                    send_all(client.id, LEFT, NULL, clients);
+                    sendAll(client.id, LEFT, NULL);
                 }
                 else
                 {
@@ -161,7 +168,7 @@ void Server::handleClientConnections()
                     char *msg;
                     while (extract_message(&clients[i].buff, &msg) > 0)
                     {
-                        send_all(client.id, MSG, msg, clients);
+                        sendAll(client.id, MSG, msg);
                         free(msg);
                     }
                 }
@@ -174,4 +181,73 @@ void Server::runServer()
 {
     bindAndListen();
     handleClientConnections();
+}
+
+void Server::sendAll(int my_id, enum e_msg flag, char *msg)
+{
+    char buff[BUFFER_SIZE];
+    int read_bytes;
+    if (flag == ARRIVE)
+    {
+        read_bytes = sprintf(buff, "server: client %d just arrived\n", my_id);
+    }
+    else if (flag == LEFT)
+    {
+        read_bytes = sprintf(buff, "server: client %d just left\n", my_id);
+    }
+    else if (flag == MSG)
+    {
+        read_bytes = sprintf(buff, "client %d: ", my_id);
+    }
+
+    for (int i = 0; i < MAX_CLIENTS; i++)
+    {
+        s_Client &client = clients[i];
+        if (client.fd > 0 && client.id != my_id)
+        {
+            int bytes_sent = send(client.fd, buff, read_bytes, 0);
+            if (bytes_sent == -1)
+            {
+                std::cerr << "Failed to send message to client " << client.id << std::endl;
+                continue;
+            }
+            if (flag == MSG)
+            {
+                bytes_sent = send(client.fd, msg, strlen(msg), 0);
+                if (bytes_sent == -1)
+                {
+                    std::cerr << "Failed to send message to client " << client.id << std::endl;
+                }
+            }
+        }
+    }
+    // test
+    std::cout << buff;
+    if (flag == MSG)
+        std::cout << msg;
+}
+
+void Server::sendGameData(const std::string &msg, GameData &data)
+{
+    for (int i = 0; i < MAX_CLIENTS; i++)
+    {
+        s_Client &client = clients[i];
+        if (client.fd > 0)
+        {
+            ssize_t bytes_sent;
+            if (msg == "")
+            {
+                bytes_sent = send(client.fd, &data, sizeof(data), 0);
+                std::cout << "sendGameData" << std::endl;
+            }
+            else
+                bytes_sent = send(client.fd, msg.c_str(), msg.size(), 0);
+            if (bytes_sent == -1)
+            {
+                std::cerr << "Disconnected client[" << client.id << "]" << std::endl;
+                // atom_stop = true;
+                // return ;
+            }
+        }
+    }
 }

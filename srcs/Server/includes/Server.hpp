@@ -7,6 +7,7 @@
 
 #define IP_ADDRESS "127.0.0.1"
 
+struct GameData;
 // Singleton
 class Server
 {
@@ -15,7 +16,7 @@ private:
     in_addr_t _ip_address;
     int _port_num;
     int serv_fd;
-    
+
     // struct timeval timeout;
 
     s_Client clients[MAX_CLIENTS];
@@ -40,6 +41,9 @@ public:
     static int setInstance(const char *port_num);
     static int setInstance(const char *ip, const char *port_num);
     static Server *getInstance();
+
+    void sendAll(int my_id, enum e_msg flag, char *msg);
+    void sendGameData(const std::string &msg, GameData &data);
 };
 
 #endif // SERVER_HPP

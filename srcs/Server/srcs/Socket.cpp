@@ -1,4 +1,6 @@
 #include "Socket.hpp"
+#include "Server.hpp"
+#include "GameFrame.hpp"
 
 void error_msg(enum e_error flag)
 {
@@ -7,50 +9,6 @@ void error_msg(enum e_error flag)
     else if (flag == FATAL_ERR)
         write(2, "Fatal error\n", strlen("Fatal error\n"));
     exit(1);
-}
-
-void send_all(int my_id, enum e_msg flag, char *msg, s_Client *clients)
-{
-    char buff[BUFFER_SIZE];
-    int read_bytes;
-    if (flag == ARRIVE)
-    {
-        read_bytes = sprintf(buff, "server: client %d just arrived\n", my_id);
-    }
-    else if (flag == LEFT)
-    {
-        read_bytes = sprintf(buff, "server: client %d just left\n", my_id);
-    }
-    else if (flag == MSG)
-    {
-        read_bytes = sprintf(buff, "client %d: ", my_id);
-    }
-
-    for (int i = 0; i < MAX_CLIENTS; i++)
-    {
-        s_Client &client = clients[i];
-        if (client.fd > 0 && client.id != my_id)
-        {
-            int bytes_sent = send(client.fd, buff, read_bytes, 0);
-            if (bytes_sent == -1)
-            {
-                std::cerr << "Failed to send message to client " << client.id << std::endl;
-                continue;
-            }
-            if (flag == MSG)
-            {
-                bytes_sent = send(client.fd, msg, strlen(msg), 0);
-                if (bytes_sent == -1)
-                {
-                    std::cerr << "Failed to send message to client " << client.id << std::endl;
-                }
-            }
-        }
-    }
-    // test
-    std::cout << buff;
-    if (flag == MSG)
-        std::cout << msg;
 }
 
 int extract_message(char **buf, char **msg)
