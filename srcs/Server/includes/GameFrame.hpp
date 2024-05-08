@@ -1,6 +1,8 @@
 #ifndef GAMEFRAME_HPP
 #define GAMEFRAME_HPP
 
+#pragma once
+
 #include "Paddle.hpp"
 #include "CircleObject.hpp"
 
