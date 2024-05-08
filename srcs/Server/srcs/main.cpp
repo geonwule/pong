@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <iostream>
 #include "Socket.hpp"
+#include "Server.hpp"
 
 s_Client clients[MAX_CLIENTS];
 int next_id = 0;
@@ -52,12 +53,9 @@ void cleanMemory()
     // }
     std::cout << "thread_arr[]->join()... done" << std::endl;
 
-    close(serv_fd);
-    for (int i = 0; i < MAX_CLIENTS; i++)
-    {
-        if (clients[i].fd > 0)
-            close(clients[i].fd);
-    }
+    Server *server = Server::getInstance();
+    if (server)
+        delete server;
 }
 
 std::atomic<bool> atom_stop(false);
@@ -82,7 +80,6 @@ void signalHandler(int signum) {
     exit(signum);
 }
 
-
 int main(int ac, char **av)
 {
     std::signal(SIGINT, signalHandler); // Ctrl + C
@@ -92,128 +89,17 @@ int main(int ac, char **av)
     for (int i = 0; i < MAX_THREAD; i++)
         thread_arr[i] = nullptr;
 
-    if (ac != 2)
+    if (!(ac == 2 || ac == 3))
     {
+        std::cerr << "input:[ip] <port>" << std::endl;
         error_msg(WRONG_ARG);
     }
 
-    int port_num = atoi(av[1]);
-    int new_fd, len;
-    struct sockaddr_in servaddr, cli;
-    // socket create and verification
-
-    serv_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (serv_fd == -1)
-    {
-        error_msg(FATAL_ERR);
-    }
-
-    bzero(&servaddr, sizeof(servaddr));
-
-    // assign IP, PORT
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = htonl(2130706433); // 127.0.0.1
-    servaddr.sin_port = htons(port_num);
-
-    // Binding newly created socket to given IP and verification
-    if ((bind(serv_fd, (const struct sockaddr *)&servaddr, sizeof(servaddr))) != 0)
-    {
-        error_msg(FATAL_ERR);
-    }
-
-    if (listen(serv_fd, 10) != 0)
-    {
-        error_msg(FATAL_ERR);
-    }
-
-    fd_set read_fds;
-    int max_fd;
-    while (1)
-    {
-        FD_ZERO(&read_fds);
-        FD_SET(serv_fd, &read_fds);
-        max_fd = serv_fd;
-
-        for (int i = 0; i < MAX_CLIENTS; i++)
-        {
-            if (clients[i].fd > 0)
-            {
-                FD_SET(clients[i].fd, &read_fds);
-                if (clients[i].fd > max_fd)
-                    max_fd = clients[i].fd;
-            }
-        }
-
-        if (select(max_fd + 1, &read_fds, NULL, NULL, NULL) < 0)
-            continue;
-
-        if (FD_ISSET(serv_fd, &read_fds))
-        {
-            len = sizeof(cli);
-            new_fd = accept(serv_fd, (struct sockaddr *)&cli, (socklen_t *)&len);
-            if (new_fd < 0)
-                error_msg(FATAL_ERR);
-            for (int i = 0; i < MAX_CLIENTS; i++)
-            {
-                s_Client &client = clients[i];
-                if (client.fd == 0)
-                {
-                    client.fd = new_fd;
-                    client.id = next_id++;
-                    client.buff = NULL;
-                    send_all(client.id, ARRIVE, NULL, clients);
-                    client_num++;
-                    if (client_num == 2)
-                    {
-                        thread_arr[0] = new std::thread(playGame);
-                        client_num = 0;
-                    }
-                    // if (t1 != nullptr)
-                    // {
-                    //     t1->join();
-                    //     delete t1;
-                    //     t1 = nullptr;
-                    // }
-                    break;
-                }
-            }
-        }
-
-        for (int i = 0; i < MAX_CLIENTS; i++)
-        {
-            s_Client &client = clients[i];
-            if (client.fd > 0 && FD_ISSET(client.fd, &read_fds))
-            {
-                char buff[BUFFER_SIZE];
-                int read_bytes = recv(client.fd, buff, BUFFER_SIZE - 1, 0);
-                if (read_bytes <= 0)
-                {
-                    std::cout << "Client[" << client.id << "] left" << std::endl;
-                    close(client.fd);
-                    clients[i].fd = 0;
-                    send_all(client.id, LEFT, NULL, clients);
-                }
-                else
-                {
-                    buff[read_bytes] = 0;
-                    std::cout << "test: " << client.id << " :" << buff; // test
-                    client.buff = str_join(client.buff, buff);
-                    while (read_bytes == BUFFER_SIZE - 1)
-                    {
-                        read_bytes = recv(client.fd, buff, BUFFER_SIZE - 1, 0);
-                        if (read_bytes <= 0)
-                            break;
-                        buff[read_bytes] = 0;
-                        client.buff = str_join(client.buff, buff);
-                    }
-                    char *msg;
-                    while (extract_message(&clients[i].buff, &msg) > 0)
-                    {
-                        send_all(client.id, MSG, msg, clients);
-                        free(msg);
-                    }
-                }
-            }
-        }
-    }
+    if (ac == 2)
+        Server::setInstance(av[1]);
+    else // ac == 3
+        Server::setInstance(av[1], av[2]);
+    
+    Server *server = Server::getInstance();
+    server->runServer();
 }
