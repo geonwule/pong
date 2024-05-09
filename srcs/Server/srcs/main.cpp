@@ -1,23 +1,9 @@
-#include <unistd.h>
-#include <sys/select.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
 #include <iostream>
-#include "Socket.hpp"
-#include "Server.hpp"
-
-
-#include <csignal>
 #include <atomic>
-
-std::atomic<bool> atom_stop(false);
-
-
+#include "Server.hpp"
 #include "Util.hpp"
 
+std::atomic<bool> atom_stop(false);
 
 int main(int ac, char **av)
 {

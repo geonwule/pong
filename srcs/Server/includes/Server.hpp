@@ -1,11 +1,35 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include <arpa/inet.h>
+#include <iostream>
+#include <arpa/inet.h> //in_addr_t
 #include <cstdlib>
-#include "Socket.hpp"
+#include <unistd.h> //close
 
 #define IP_ADDRESS "127.0.0.1"
+#define MAX_CLIENTS 1024
+#define BUFFER_SIZE 1024
+
+enum e_msg
+{
+    ARRIVE,
+    LEFT,
+    MSG,
+};
+
+enum e_game
+{
+    GAME_START,
+    GAME_LOADING,
+    GAME_ING,
+    GAME_END,
+};
+
+struct s_Client
+{
+    int id, fd;
+    char *buff;
+};
 
 struct GameData;
 // Singleton
@@ -31,19 +55,22 @@ private:
     Server(const char *port_num);
     Server(const char *ip, const char *port_num);
 
+    /* Socket.cpp */
     void bindAndListen();
     void handleClientConnections();
 
 public:
     ~Server();
 
-    void runServer();
+    /* Server.cpp */
     static int setInstance(const char *port_num);
     static int setInstance(const char *ip, const char *port_num);
     static Server *getInstance();
 
-    void sendAll(int my_id, enum e_msg flag, char *msg);
-    void sendGameData(const std::string &msg, GameData &data);
+    /* Socket.cpp */
+    void runServer();
+    void sendClientMessage(int my_id, enum e_msg flag, char *msg);
+    void sendGameData(e_game flag, GameData *data = nullptr);
 };
 
 #endif // SERVER_HPP

@@ -1,8 +1,7 @@
-#include "Socket.hpp"
 #include "Server.hpp"
 #include "GameFrame.hpp"
-#include <atomic>
 #include "Thread.hpp"
+#include "Util.hpp"
 
 extern std::atomic<bool> atom_stop;
 
@@ -10,18 +9,21 @@ void threadSendData(GameData &data)
 {
     Server *server = Server::getInstance();
     if (server == nullptr)
+        error_msg(FATAL_ERR);
+    
+    while (data.isGameStart == GAME_LOADING)
     {
-        std::cerr << "Server::getInstance() failed" << std::endl;
-        return;
+        server->sendGameData(GAME_LOADING, &data);
+        sleep(1);
     }
     while (!atom_stop)
     {
-        server->sendGameData("", data);
+        server->sendGameData(GAME_ING, &data);
     }
     std::cout << "threadSendData over..." << std::endl;
 }
 
-void inputData(GameData &data, Paddle &p1, Paddle &p2, CircleObject &ball)
+static void inputData(GameData &data, Paddle &p1, Paddle &p2, CircleObject &ball)
 {
     data.ball_x = ball.getX();
     data.ball_y = ball.getY();
@@ -36,8 +38,6 @@ void inputData(GameData &data, Paddle &p1, Paddle &p2, CircleObject &ball)
 
     data.player1Lives = p1.getLife();
     data.player2Lives = p2.getLife();
-
-    data.isGameStart = 1;
 }
 
 void playGame()
@@ -45,17 +45,20 @@ void playGame()
     GameData data;
     Server *server = Server::getInstance();
     if (server == nullptr)
-    {
-        std::cerr << "Server::getInstance() failed" << std::endl;
-        return;
-    }
-    server->sendGameData("Game Start", data);
-
-    std::cout << "Game Start" << std::endl;
-    Thread::createThread(threadSendData, std::ref(data));
+        error_msg(FATAL_ERR);
 
     Paddle p1(PLAYER1), p2(PLAYER2);
     CircleObject ball;
+    inputData(data, p1, p2, ball);
+    data.isGameStart = GAME_LOADING;
+
+    Thread::createThread(threadSendData, std::ref(data));
+    sleep(3); //loading time
+
+    std::cout << "Game Start" << std::endl;
+    server->sendGameData(GAME_START);
+    data.isGameStart = GAME_ING;
+    sleep(1); //window loading time
 
     while (!atom_stop)
     {
@@ -71,7 +74,7 @@ void playGame()
         inputData(data, p1, p2, ball);
         usleep(8000);
     }
-
+    data.isGameStart = GAME_END;
     std::cout << "PlayGame over..." << std::endl;
 
 }

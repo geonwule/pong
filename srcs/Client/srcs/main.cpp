@@ -9,7 +9,13 @@
 
 #define WIDTH 2000
 #define HEIGHT 1000
-
+enum e_game
+{
+    GAME_START,
+    GAME_LOADING,
+    GAME_ING,
+    GAME_END,
+};
 using namespace std;
 #include <sstream>
 #include <cmath>
@@ -199,10 +205,9 @@ int main(int ac, char **av)
 
     while (1)
     {
-        if (data.isGameStart)
+        if (data.isGameStart == GAME_ING)
             break;
         std::cout << "Waiting for the game to start..." << std::endl;
-        sleep(3);
     }
 
     rendering(data);
