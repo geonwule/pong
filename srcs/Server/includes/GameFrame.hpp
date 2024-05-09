@@ -6,7 +6,9 @@
 #include "Paddle.hpp"
 #include "CircleObject.hpp"
 
-struct GameData {
+struct s_Client;
+
+struct GameData {    
     float ball_x;
     float ball_y;
     float ball_radius;

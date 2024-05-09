@@ -5,10 +5,12 @@
 
 #include "AGameElement.hpp"
 #include <algorithm>
+#include <iostream>
+#include <string>
 
 #define PADDLE_WIDTH 0.1f
 #define PADDLE_HEIGHT 0.3f
-#define PADDLE_SPEED 0.02f
+#define PADDLE_SPEED 0.002f
 
 enum e_paddle
 {
@@ -45,7 +47,7 @@ public:
     e_paddle getDirection() const;
 
     void move() override;
-    void setDirection(e_paddle direction);
+    void setDirection(const std::string &direction);
 };
 
 

@@ -9,7 +9,7 @@
 #include <string>
 
 #define CIRCLE_RADIUS 0.05f
-#define CIRCLE_SPEED 0.01f
+#define CIRCLE_SPEED 0.001f
 
 enum e_circle
 {

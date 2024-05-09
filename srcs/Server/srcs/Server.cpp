@@ -55,3 +55,16 @@ Server *Server::getInstance()
 {
     return _instance;
 }
+
+s_Client *Server::getClient()
+{
+    for (int i = 0; i < MAX_CLIENTS; i++)
+    {
+        if (clients[i].fd > 0 && !clients[i].game_ing)
+        {
+            clients[i].game_ing = 1;
+            return &clients[i];
+        }
+    }
+    return nullptr;
+}

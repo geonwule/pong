@@ -4,7 +4,7 @@
 #include <iostream>
 #include <thread>
 
-#define MAX_THREAD 2
+#define MAX_THREAD 4
 
 class Thread
 {

@@ -35,6 +35,7 @@ CircleObject ball;
 // 플레이어의 목숨
 int player1Lives = 5, player2Lives = 5;
 
+void sendMessage(e_paddle direction);
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
@@ -45,20 +46,14 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         switch (key)
         {
         case GLFW_KEY_W:
-            player1PaddleMove = UP;
-            cout << "player1 = UP" << endl;
+        case GLFW_KEY_UP:
+            cout << "player = UP" << endl;
+            sendMessage(UP);
             break;
         case GLFW_KEY_S:
-            cout << "player1 = DOWN" << endl;
-            player1PaddleMove = DOWN;
-            break;
-        case GLFW_KEY_UP:
-            cout << "player2 = UP" << endl;
-            player2PaddleMove = UP;
-            break;
         case GLFW_KEY_DOWN:
-            cout << "player2 = DOWN" << endl;
-            player2PaddleMove = DOWN;
+            cout << "player = DOWN" << endl;
+            sendMessage(DOWN);
             break;
         case GLFW_KEY_R:
             // resetKey();

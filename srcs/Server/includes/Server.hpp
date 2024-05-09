@@ -29,6 +29,8 @@ struct s_Client
 {
     int id, fd;
     char *buff;
+    int game_ing;
+    std::string msg;
 };
 
 struct GameData;
@@ -66,11 +68,13 @@ public:
     static int setInstance(const char *port_num);
     static int setInstance(const char *ip, const char *port_num);
     static Server *getInstance();
+    s_Client *getClient();
 
     /* Socket.cpp */
     void runServer();
     void sendClientMessage(int my_id, enum e_msg flag, char *msg);
     void sendGameData(e_game flag, GameData *data = nullptr);
+    void receiveGameData(s_Client &player);
 };
 
 #endif // SERVER_HPP

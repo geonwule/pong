@@ -1,5 +1,7 @@
 #include "Paddle.hpp"
 
+#define WIN_HEIGHT 1000
+
 Paddle::Paddle(e_paddle player_num) : AGameElement(0.0f, 0.0f, PADDLE_SPEED), _width(PADDLE_WIDTH), _height(PADDLE_HEIGHT), _direction(STOP), _life(5)
 {
     if (player_num == PLAYER1)
@@ -41,11 +43,20 @@ void Paddle::move()
     if (this->_direction == STOP)
         return;
     else if (this->_direction == UP)
-        this->_y = std::max(this->_y + this->_speed, 1.0f - this->_height);
+        this->_y = std::max(this->_y + this->_speed, 0.0f);
     else if (this->_direction == DOWN)
-        this->_y = std::min(this->_y - this->_speed, -1.0f);
+        this->_y = std::min(this->_y - this->_speed, WIN_HEIGHT - this->_height);
 }
-void Paddle::setDirection(e_paddle direction)
+void Paddle::setDirection(const std::string &direction)
 {
-    this->_direction = direction;
+    if (direction.compare("UP") == 0)
+        this->_direction = UP;
+    else if (direction.compare("DOWN") == 0)
+        this->_direction = DOWN;
+    else
+    {
+        this->_direction = STOP;
+        return ;
+    }
+    std::cout << "Paddle direction: " << this->_direction << std::endl;
 }

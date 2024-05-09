@@ -24,7 +24,6 @@ using namespace std;
 #include <csignal>
 #include <atomic>
 
-
 void rendering(GameData &data);
 
 GameData data = {
@@ -36,6 +35,31 @@ GameData data = {
 #define MAX_THREAD 2
 std::thread *thread_arr[MAX_THREAD];
 int sockfd;
+
+enum e_paddle
+{
+    UP,
+    DOWN,
+    STOP,
+    PLAYER1,
+    PLAYER2
+};
+void sendMessage(e_paddle direction)
+{
+    std::string message;
+    if (direction == UP)
+        message = "UP";
+    else if (direction == DOWN)
+        message = "DOWN";
+    else
+        return;
+    if (send(sockfd, message.c_str(), message.size(), 0) == -1)
+    {
+        cerr << "Failed to send message" << endl;
+        exit(1);
+    }
+    std::cout << "Message sent: " << message << std::endl;
+}
 
 void cleanMemory()
 {
@@ -52,7 +76,8 @@ void cleanMemory()
 
 std::atomic<bool> atom_stop(false);
 
-void signalHandler(int signum) {
+void signalHandler(int signum)
+{
     if (signum == SIGINT)
         std::cout << "SIGINT: Interrupt signal received" << std::endl;
     else if (signum == SIGTERM)
@@ -88,8 +113,11 @@ void threadReceiveMessage(int sockfd)
         }
         else
         {
-            int valread = recv(sockfd, &data, sizeof(data), 0);
-            if (valread != sizeof(data)) //(valread <= 0)
+            int valread = recv(sockfd, &data, sizeof(GameData), 0);
+            // std::cout << "valread = " << valread << std::endl;
+            // std::cout << "sizeof(data) = " << sizeof(GameData) << std::endl;
+            if (valread != sizeof(GameData))
+            // if (valread <= 0)
             {
                 cerr << "Failed to receive GameData" << endl;
                 // cleanMemory();
@@ -97,7 +125,7 @@ void threadReceiveMessage(int sockfd)
                 atom_stop = true;
                 return;
             }
-            std::cout << "Received GameData" << std::endl;
+            // std::cout << "Received GameData" << std::endl;
         }
     }
 }
@@ -114,7 +142,7 @@ void threadSocketNetwork(int sockfd)
         struct timeval timeout;
         int rv;
         char buff[100];
-        FD_ZERO(&set); /* clear the set */
+        FD_ZERO(&set);   /* clear the set */
         FD_SET(0, &set); /* add our file descriptor to the set */
 
         timeout.tv_sec = 0;
@@ -122,9 +150,9 @@ void threadSocketNetwork(int sockfd)
 
         rv = select(1, &set, NULL, NULL, &timeout);
 
-        if(rv == -1)
+        if (rv == -1)
             perror("select"); /* an error accured */
-        else if(rv == 0)
+        else if (rv == 0)
             continue; /* a timeout occured */
         else
             read(0, buff, sizeof buff); /* there was data to read */
@@ -156,7 +184,7 @@ int main(int ac, char **av)
     // rendering(data);
     // return 0;
 
-    std::signal(SIGINT, signalHandler); // Ctrl + C
+    std::signal(SIGINT, signalHandler);  // Ctrl + C
     std::signal(SIGTERM, signalHandler); // kill
 
     if (ac != 3)

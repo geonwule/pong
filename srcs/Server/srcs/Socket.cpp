@@ -65,7 +65,7 @@ void Server::bindAndListen()
     serv_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (serv_fd == -1)
         error_msg(FATAL_ERR);
-    
+
     bzero(&servaddr, sizeof(servaddr));
 
     // assign IP, PORT
@@ -85,7 +85,7 @@ void Server::handleClientConnections()
 {
     fd_set read_fds;
     struct sockaddr_in cli;
-    while(1)
+    while (1)
     {
         FD_ZERO(&read_fds);
         FD_SET(serv_fd, &read_fds);
@@ -94,7 +94,7 @@ void Server::handleClientConnections()
 
         for (int i = 0; i < MAX_CLIENTS; i++)
         {
-            if (clients[i].fd > 0)
+            if (clients[i].fd > 0 && clients[i].game_ing == 0)
             {
                 FD_SET(clients[i].fd, &read_fds);
                 if (clients[i].fd > max_fd)
@@ -139,7 +139,7 @@ void Server::handleClientConnections()
         for (int i = 0; i < MAX_CLIENTS; i++)
         {
             s_Client &client = clients[i];
-            if (client.fd > 0 && FD_ISSET(client.fd, &read_fds))
+            if (client.fd > 0 && FD_ISSET(client.fd, &read_fds) && client.game_ing == 0)
             {
                 char buff[BUFFER_SIZE];
                 int read_bytes = recv(client.fd, buff, BUFFER_SIZE - 1, 0);
@@ -245,10 +245,10 @@ void Server::sendGameData(e_game flag, GameData *data)
             }
             else if (flag == GAME_ING)
             {
-                bytes_sent = send(client.fd, data, sizeof(*data), 0);
-                std::cout << "sendGameData" << std::endl;
+                bytes_sent = send(client.fd, data, sizeof(GameData), 0);
+                // std::cout << "sendGameData" << std::endl;
             }
-            else 
+            else
             {
                 std::string msg("Game End");
                 bytes_sent = send(client.fd, msg.c_str(), msg.size(), 0);
@@ -262,4 +262,18 @@ void Server::sendGameData(e_game flag, GameData *data)
             }
         }
     }
+}
+
+void Server::receiveGameData(s_Client &player)
+{
+    char buffer[BUFFER_SIZE] = {0};
+
+    ssize_t valread = recv(player.fd, buffer, BUFFER_SIZE, 0);
+    if (valread == -1)
+    {
+        std::cerr << "Failed to receive data from player[" << player.id << "]" << std::endl;
+    }
+    buffer[valread] = 0;
+    player.msg = buffer;
+    std::cout << "player[" << player.id << "]: " << player.msg << std::endl; // test
 }
