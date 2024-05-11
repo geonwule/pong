@@ -10,7 +10,8 @@ void Thread::cleanThread()
         if (thread_arr[i] == nullptr)
             continue;
         std::cout << "thread_arr[" << i << "]->join()..." << std::endl;
-        thread_arr[i]->join();
+        // thread_arr[i]->join();
+        thread_arr[i]->detach();
         delete thread_arr[i];
         thread_arr[i] = nullptr;
         std::cout << "thread_arr[" << i << "]->join()... done" << std::endl;

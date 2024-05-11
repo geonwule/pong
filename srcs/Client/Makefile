@@ -8,8 +8,10 @@ HEAD = ${CLIENT_SRCS_DIR}/gameElements
 CLIENT_SRCS = $(wildcard ${CLIENT_SRCS_DIR}/*.cpp)
 
 ifeq ($(shell uname -s), Darwin) #MacOS
+LDFLAGS = 
 CLIENT_LFLAGS = -L ${OPNE_GL}/lib-x86_64 -lglfw3 -framework Cocoa -framework IOKit -framework OpenGL
 else #Linux
+LDFLAGS = -lpthread
 CLIENT_LFLAGS = -lglfw -lGL -lm -lXrandr -lXi -lX11 -lXxf86vm -lpthread -ldl -lXinerama -lXcursor
 endif
 
@@ -27,7 +29,7 @@ all: $(CLIENT_NAME)
 	$(CXX) $(CLIENT_CFLAGS) -c $< -o $@
 
 $(CLIENT_NAME): $(CLIENT_OBJS)
-	$(CXX) $(CLIENT_OBJS) $(CLIENT_LFLAGS) -o $(CLIENT_NAME)
+	$(CXX) $(CLIENT_OBJS) $(LDFLAGS) $(CLIENT_LFLAGS) -o $(CLIENT_NAME)
 
 debug: $(CLIENT_SRCS)
 	$(CXX) $(CLIENT_CFLAGS) $(CLIENT_LFLAGS) $(DEBUG_FLAGS) $(CLIENT_SRCS) -I $(HEAD) -o $(CLIENT_NAME) 

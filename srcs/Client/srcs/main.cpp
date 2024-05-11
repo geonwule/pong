@@ -110,15 +110,18 @@ void threadReceiveMessage(int sockfd)
             buffer[valread] = 0;
             cout << buffer << endl;
             if (string(buffer) == "Game Start")
+            {
+                std::cout << "Game Start" << std::endl;
                 isGameStart = true;
+            }
         }
         else
         {
             int valread = recv(sockfd, &data, sizeof(GameData), 0);
             // std::cout << "valread = " << valread << std::endl;
-            // std::cout << "sizeof(data) = " << sizeof(GameData) << std::endl;
-            if (valread != sizeof(GameData))
-            // if (valread <= 0)
+            // std::cout << "sizeof(GameData) = " << sizeof(GameData) << std::endl;
+            // if (valread != sizeof(GameData)) // 네트워크 전송에 문제가 있을떄 다르게 받아옴
+            if (valread <= 0)
             {
                 cerr << "Failed to receive GameData" << endl;
                 // cleanMemory();
@@ -236,7 +239,7 @@ int main(int ac, char **av)
     {
         if (data.isGameStart == GAME_ING)
             break;
-        std::cout << "Waiting for the game to start..." << std::endl;
+        // std::cout << "Waiting for the game to start..." << std::endl;
     }
 
     rendering(data);
