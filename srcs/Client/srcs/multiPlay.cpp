@@ -1,7 +1,11 @@
 #include <iostream>
 #include <sstream>
 #include <algorithm> // std::max, std::min 함수를 사용하기 위해 필요합니다.
+#ifdef __APPLE__
 #include "../../../mac_opengl/include/GLFW/glfw3.h"
+#else
+#include <GLFW/glfw3.h>
+#endif
 
 #include "CircleObject.hpp"
 #include "Paddle.hpp"

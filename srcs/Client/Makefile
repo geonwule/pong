@@ -7,9 +7,14 @@ HEAD = ${CLIENT_SRCS_DIR}/gameElements
 
 CLIENT_SRCS = $(wildcard ${CLIENT_SRCS_DIR}/*.cpp)
 
+ifeq ($(shell uname -s), Darwin) #MacOS
+CLIENT_LFLAGS = -L ${OPNE_GL}/lib-x86_64 -lglfw3 -framework Cocoa -framework IOKit -framework OpenGL
+else #Linux
+CLIENT_LFLAGS = -lglfw -lGL -lm -lXrandr -lXi -lX11 -lXxf86vm -lpthread -ldl -lXinerama -lXcursor
+endif
+
 CLIENT_OBJS = $(CLIENT_SRCS:.cpp=.o)
 CLIENT_CFLAGS = -Wall -Wextra -Werror -std=c++11 -I${HEAD} -I ${OPNE_GL}/include/ -DGL_SILENCE_DEPRECATION
-CLIENT_LFLAGS = -L ${OPNE_GL}/lib-x86_64 -lglfw3 -framework Cocoa -framework IOKit -framework OpenGL
 CLIENT_NAME = pong_client
 
 DEBUG_FLAGS = -g -fsanitize=address
@@ -22,7 +27,7 @@ all: $(CLIENT_NAME)
 	$(CXX) $(CLIENT_CFLAGS) -c $< -o $@
 
 $(CLIENT_NAME): $(CLIENT_OBJS)
-	$(CXX) $(CLIENT_LFLAGS) $(CLIENT_OBJS) -o $(CLIENT_NAME)
+	$(CXX) $(CLIENT_OBJS) $(CLIENT_LFLAGS) -o $(CLIENT_NAME)
 
 debug: $(CLIENT_SRCS)
 	$(CXX) $(CLIENT_CFLAGS) $(CLIENT_LFLAGS) $(DEBUG_FLAGS) $(CLIENT_SRCS) -I $(HEAD) -o $(CLIENT_NAME) 

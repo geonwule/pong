@@ -1,7 +1,11 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#ifdef __APPLE__
 #include "../../../mac_opengl/include/GLFW/glfw3.h"
+#else
+#include <GLFW/glfw3.h>
+#endif
 #include "GameFrame.hpp"
 #include <atomic>
 
@@ -132,12 +136,12 @@ void rendering(GameData& data)
     // 마우스 이동 콜백 설정
     glfwSetCursorPosCallback(window, cursor_position_callback);
 
-    double time;
+    // double time;
 
     while (!glfwWindowShouldClose(window) && !atom_stop)
     {
         // 시간 측정
-        time = glfwGetTime();
+        // time = glfwGetTime();
 
         // 백 버퍼 초기화
         glClear(GL_COLOR_BUFFER_BIT);

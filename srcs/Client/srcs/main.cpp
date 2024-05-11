@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <future>
 #include <thread>
-#include "../../../mac_opengl/include/GLFW/glfw3.h"
+// #include "../../../mac_opengl/include/GLFW/glfw3.h"
 
 #define WIDTH 2000
 #define HEIGHT 1000
@@ -22,6 +22,7 @@ using namespace std;
 #include "GameFrame.hpp"
 
 #include <csignal>
+#include <cstring>
 #include <atomic>
 
 void rendering(GameData &data);

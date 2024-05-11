@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <cstring>
+#include <atomic>
 
 #include "Server.hpp"
 #include "Util.hpp"
