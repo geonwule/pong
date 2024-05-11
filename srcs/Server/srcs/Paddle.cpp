@@ -43,10 +43,12 @@ void Paddle::move()
     if (this->_direction == STOP)
         return;
     else if (this->_direction == UP)
-        this->_y = std::max(this->_y + this->_speed, 0.0f);
+        this->_y = std::min(this->_y + this->_speed, 1.0f - this->_height);
     else if (this->_direction == DOWN)
-        this->_y = std::min(this->_y - this->_speed, WIN_HEIGHT - this->_height);
+        this->_y = std::max(this->_y - this->_speed, -1.0f);
+    std::cout << "Paddle position: " << this->_x << ", " << this->_y << std::endl;
 }
+
 void Paddle::setDirection(const std::string &direction)
 {
     if (direction.compare("UP") == 0)
