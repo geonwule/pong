@@ -1,14 +1,13 @@
 #include <cstdlib>
 #include <cstring>
-#include <atomic>
 #include <sstream>
 
 #include "Server.hpp"
 #include "Util.hpp"
 #include "Thread.hpp"
 #include "GameFrame.hpp"
+#include "Cache.hpp"
 
-extern std::atomic<bool> atom_stop;
 void playGame();
 
 static int extract_message(char **buf, char **msg)
@@ -129,7 +128,7 @@ void Server::handleClientConnections()
                     if (client_num == 2)
                     {
                         // thread_arr[0] = new std::thread(playGame);
-                        atom_stop = false;
+                        Cache::atom_stop = false;
                         Thread::createThread(playGame);
                         client_num = 0;
                     }
@@ -261,7 +260,7 @@ void Server::sendGameData(e_game flag, GameData *data)
                 std::stringstream ss;
                 ss << "Disconnected client[" << client.id << "]";
                 std::cerr << ss.str() << std::endl;
-                atom_stop = true;
+                Cache::atom_stop = true;
                 return ;
             }
         }

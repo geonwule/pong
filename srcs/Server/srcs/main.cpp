@@ -1,9 +1,6 @@
 #include <iostream>
-#include <atomic>
 #include "Server.hpp"
 #include "Util.hpp"
-
-std::atomic<bool> atom_stop(false);
 
 int main(int ac, char **av)
 {

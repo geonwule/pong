@@ -1,9 +1,7 @@
 #include "Util.hpp"
 #include "Server.hpp"
 #include "Thread.hpp"
-#include <atomic>
-
-extern std::atomic<bool> atom_stop;
+#include "Cache.hpp"
 
 void error_msg(enum e_error flag)
 {
@@ -36,7 +34,7 @@ void signalHandler(int signum) {
     else if (signum == SIGPIPE)
     {
         std::cout << "SIGPIPE: Broken pipe signal received" << std::endl;
-        atom_stop = true;
+        Cache::atom_stop = true;
         Thread::cleanThread();
         return ;
     }

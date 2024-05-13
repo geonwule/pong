@@ -1,10 +1,8 @@
-#include <atomic>
 #include "Server.hpp"
 #include "GameFrame.hpp"
 #include "Thread.hpp"
 #include "Util.hpp"
-
-extern std::atomic<bool> atom_stop;
+#include "Cache.hpp"
 
 void threadReceiveData(s_Client &player, Paddle &paddle)
 {
@@ -13,7 +11,7 @@ void threadReceiveData(s_Client &player, Paddle &paddle)
         error_msg(FATAL_ERR);
 
     std::string msg;
-    while (!atom_stop)
+    while (!Cache::atom_stop)
     {
         server->receiveGameData(player);
         paddle.setDirection(player.msg);
@@ -36,7 +34,7 @@ void threadSendData(GameData &data)
     std::cout << "Game Start" << std::endl;
     server->sendGameData(GAME_START);
 
-    while (!atom_stop)
+    while (!Cache::atom_stop)
     {
         server->sendGameData(GAME_ING, &data);
     }
@@ -88,7 +86,7 @@ void playGame()
     sleep(1); //window loading time
     Thread::createThread(threadReceiveData, std::ref(*player1), std::ref(p1));
     Thread::createThread(threadReceiveData, std::ref(*player2), std::ref(p2));
-    while (!atom_stop)
+    while (!Cache::atom_stop)
     {
         // Paddle
         p1.move();
