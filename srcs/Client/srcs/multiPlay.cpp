@@ -19,7 +19,7 @@
 #define attackBallColor "#ff396e"
 #define backgroundColor "#27522d"
 #define PI 3.14159265
-
+#include "Client.hpp"
 using namespace std;
 
 
@@ -43,6 +43,7 @@ void sendMessage(e_paddle direction);
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
+    Client *client = Client::getInstance();
     (void)scancode;
     (void)mods;
     if (action == GLFW_PRESS)
@@ -52,12 +53,12 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         case GLFW_KEY_W:
         case GLFW_KEY_UP:
             cout << "player = UP" << endl;
-            sendMessage(UP);
+            client->sendPaddleDirection(UP);
             break;
         case GLFW_KEY_S:
         case GLFW_KEY_DOWN:
             cout << "player = DOWN" << endl;
-            sendMessage(DOWN);
+            client->sendPaddleDirection(DOWN);
             break;
         case GLFW_KEY_R:
             // resetKey();
