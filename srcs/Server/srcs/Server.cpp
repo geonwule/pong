@@ -3,7 +3,7 @@
 
 Server *Server::_instance = nullptr;
 
-Server::Server(const char *port_num) : _ip_address(inet_addr(IP_ADDRESS)), _port_num(atoi(port_num))
+Server::Server(const char *port_num) : _ip_address(inet_addr(IP_ADDRESS)), _port_num(atoi(port_num)), serv_fd(0)
 {
     if (_port_num < 0 || _port_num > 65535)
     {
@@ -12,7 +12,7 @@ Server::Server(const char *port_num) : _ip_address(inet_addr(IP_ADDRESS)), _port
     }
 }
 
-Server::Server(const char *ip_address, const char *port_num) : _ip_address(inet_addr(ip_address)), _port_num(atoi(port_num))
+Server::Server(const char *ip_address, const char *port_num) : _ip_address(inet_addr(ip_address)), _port_num(atoi(port_num)), serv_fd(0)
 {
     if (_port_num < 0 || _port_num > 65535)
     {
@@ -23,7 +23,8 @@ Server::Server(const char *ip_address, const char *port_num) : _ip_address(inet_
 
 Server::~Server()
 {
-    close(serv_fd);
+    if (serv_fd)
+        close(serv_fd);
     for (int i = 0; i < MAX_CLIENTS; i++)
     {
         if (clients[i].fd > 0)
