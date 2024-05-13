@@ -10,7 +10,7 @@
 
 #define PADDLE_WIDTH 0.1f
 #define PADDLE_HEIGHT 0.3f
-#define PADDLE_SPEED 0.002f
+#define PADDLE_SPEED 0.01f
 
 enum e_paddle
 {
