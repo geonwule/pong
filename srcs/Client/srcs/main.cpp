@@ -191,14 +191,26 @@ int main(int ac, char **av)
     std::signal(SIGINT, signalHandler);  // Ctrl + C
     std::signal(SIGTERM, signalHandler); // kill
 
-    if (ac != 3)
+    if (!(ac == 2 || ac == 3))
     {
-        cerr << "Usage: " << av[0] << " <ip> <port_num>" << endl;
+        std::cerr << "input:[ip] <port>" << std::endl;
         return 1;
+        // error_msg(WRONG_ARG);
     }
 
-    string ip = av[1];
-    int port_num = stoi(av[2]);
+    string ip;
+    int port_num;
+    if (ac == 2)
+    {
+        ip = "127.0.0.1";
+        port_num = stoi(av[1]);
+    }
+    else // ac == 3
+    {
+        ip = av[1];
+        port_num = stoi(av[2]);
+    }
+    
 
     // Create a socket
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
