@@ -10,6 +10,7 @@
 #include "GameFrame.hpp"
 #include "Util.hpp"
 #include "Client.hpp"
+#include "Cache.hpp"
 
 void hexToRGB(const std::string &hex, float &r, float &g, float &b)
 {
@@ -98,7 +99,6 @@ void drawLives(int player1Lives, int player2Lives)
     }
 }
 
-#include "Cache.hpp"
 void multiPlay()
 {
     GameData &data = Cache::data;
