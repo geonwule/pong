@@ -1,91 +1,15 @@
 #include <iostream>
-#include <sstream>
-#include <algorithm> // std::max, std::min 함수를 사용하기 위해 필요합니다.
+#include <sstream> //hexToRGB
+
 #ifdef __APPLE__
 #include "../../../mac_opengl/include/GLFW/glfw3.h"
 #else
 #include <GLFW/glfw3.h>
 #endif
 
-#include "CircleObject.hpp"
-#include "Paddle.hpp"
 #include "GameFrame.hpp"
-
-#define WIDTH 1500
-#define HEIGHT 750
-
-#define paddleColor "#ffffff"
-#define ballColor "#ffa939"
-#define attackBallColor "#ff396e"
-#define backgroundColor "#27522d"
-#define PI 3.14159265
-#include "Client.hpp"
-using namespace std;
 #include "Util.hpp"
-
-
-int isBallMoving = STOP;
-
-int keyW = 0, keyS = 0, keyUp = 0, keyDown = 0;
-int player1PaddleMove = STOP, player2PaddleMove = STOP;
-
-// Paddle과 Ball의 위치와 속도
-float paddleSpeed = 0.02f;//, ballSpeed = 0.01f;
-
-// Ball의 방향
-//float ballDirX = 1.0f, ballDirY = 1.0f;
-
-CircleObject ball;
-
-// 플레이어의 목숨
-int player1Lives = 5, player2Lives = 5;
-
-void sendMessage(e_paddle direction);
-
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
-{
-    Client *client = Client::getInstance();
-    (void)scancode;
-    (void)mods;
-    if (action == GLFW_PRESS)
-    {
-        switch (key)
-        {
-        case GLFW_KEY_W:
-        case GLFW_KEY_UP:
-            cout << "player = UP" << endl;
-            client->sendPaddleDirection(UP);
-            break;
-        case GLFW_KEY_S:
-        case GLFW_KEY_DOWN:
-            cout << "player = DOWN" << endl;
-            client->sendPaddleDirection(DOWN);
-            break;
-        case GLFW_KEY_R:
-            // resetKey();
-            break;
-        case GLFW_KEY_ESCAPE:
-            cout << "ESC key pressed" << endl;
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
-            cleanMemory();
-            exit(EXIT_SUCCESS);
-            break;
-        default:
-            cout << "Other key pressed" << endl;
-            break;
-        }
-    }
-    else if (action == GLFW_RELEASE)
-    {
-        switch (key)
-        {
-        case GLFW_KEY_W:
-            break;
-        case GLFW_KEY_S:
-            break;
-        }
-    }
-}
+#include "Client.hpp"
 
 void hexToRGB(const std::string &hex, float &r, float &g, float &b)
 {

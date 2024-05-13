@@ -1,6 +1,18 @@
 #ifndef GAMEFRAME_HPP
 #define GAMEFRAME_HPP
 
+#define paddleColor "#ffffff"
+#define ballColor "#ffa939"
+#define attackBallColor "#ff396e"
+#define backgroundColor "#27522d"
+#define PI 3.14159265
+
+enum e_canvas
+{
+    WIDTH=1500,
+    HEIGHT=750,
+};
+
 enum e_game
 {
     GAME_START,

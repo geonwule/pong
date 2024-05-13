@@ -1,9 +1,6 @@
-#include <iostream>
-#include <csignal>
-#include <cstring>
+#include <csignal> //std::signal
 
 #include "Util.hpp"
-#include "Thread.hpp"
 #include "Client.hpp"
 #include "Cache.hpp"
 
@@ -15,10 +12,7 @@ int main(int ac, char **av)
     std::signal(SIGTERM, signalHandler); // kill
 
     if (!(ac == 2 || ac == 3))
-    {
-        std::cerr << "input:[ip] <port>" << std::endl;
         error_msg(WRONG_ARG);
-    }
 
     if (ac == 2)
         Client::setInstance(av[1]);
