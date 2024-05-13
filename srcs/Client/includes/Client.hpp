@@ -28,8 +28,7 @@ private:
     Client(const char *ip, const char *port_num);
 
     /* Socket.cpp */
-    // void bindAndListen();
-    // void handleClientConnections();
+    void connectServer();
 
 public:
     ~Client();
@@ -38,15 +37,10 @@ public:
     static int setInstance(const char *port_num);
     static int setInstance(const char *ip, const char *port_num);
     static Client *getInstance();
-    void connectServer();
-    void handleServerCommunication();
-    void sendPaddleDirection(e_paddle direction);
 
     /* Socket.cpp */
-    // void runClient();
-    // void sendClientMessage(int my_id, enum e_msg flag, char *msg);
-    // void sendGameData(e_game flag, GameData *data = nullptr);
-    // void receiveGameData(s_Client &player);
+    void runClient();
+    void sendPaddleDirection(e_paddle direction);
 };
 
 #endif // Client_HPP

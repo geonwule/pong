@@ -7,9 +7,7 @@
 #include <GLFW/glfw3.h>
 #endif
 #include "GameFrame.hpp"
-#include <atomic>
-
-extern std::atomic<bool> atom_stop;
+#include "Cache.hpp"
 
 #define WIDTH 1500
 #define HEIGHT 750
@@ -17,7 +15,8 @@ extern std::atomic<bool> atom_stop;
 using namespace std;
 
 void singlePlay();
-void multiPlay(GameData& data);
+void multiPlay();
+
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
 void error_callback(int error, const char *description)
@@ -100,7 +99,7 @@ static void cursor_position_callback(GLFWwindow *window, double xpos, double ypo
     cout << "Cursor Position at (" << xpos << " : " << ypos << ")" << endl;
 }
 
-void rendering(GameData& data)
+void rendering()
 {
     // 오류 콜백 함수 설정
     glfwSetErrorCallback(error_callback);
@@ -138,7 +137,7 @@ void rendering(GameData& data)
 
     // double time;
 
-    while (!glfwWindowShouldClose(window) && !atom_stop)
+    while (!glfwWindowShouldClose(window) && !Cache::atom_stop)
     {
         // 시간 측정
         // time = glfwGetTime();
@@ -150,7 +149,7 @@ void rendering(GameData& data)
         이벤트 처리가 많은 시간을 소모하는 작업이라면,
         그림 그리는 작업과 이벤트 처리를 별도의 스레드에서 수행하는 것이 더 효율적일 수 있습니다*/
         // singlePlay();
-        multiPlay(data);
+        multiPlay();
 
         // 백버퍼와 프론트 버퍼 교환
         glfwSwapBuffers(window);

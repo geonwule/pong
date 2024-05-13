@@ -1,6 +1,14 @@
 #ifndef GAMEFRAME_HPP
 #define GAMEFRAME_HPP
 
+enum e_game
+{
+    GAME_START,
+    GAME_LOADING,
+    GAME_ING,
+    GAME_END,
+};
+
 struct GameData {
     float ball_x;
     float ball_y;

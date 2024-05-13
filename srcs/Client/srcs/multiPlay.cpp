@@ -21,6 +21,7 @@
 #define PI 3.14159265
 #include "Client.hpp"
 using namespace std;
+#include "Util.hpp"
 
 
 int isBallMoving = STOP;
@@ -66,6 +67,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         case GLFW_KEY_ESCAPE:
             cout << "ESC key pressed" << endl;
             glfwSetWindowShouldClose(window, GLFW_TRUE);
+            cleanMemory();
+            exit(EXIT_SUCCESS);
             break;
         default:
             cout << "Other key pressed" << endl;
@@ -171,9 +174,10 @@ void drawLives(int player1Lives, int player2Lives)
     }
 }
 
-
-void multiPlay(GameData& data)
+#include "Cache.hpp"
+void multiPlay()
 {
+    GameData &data = Cache::data;
     // 배경 그리기
     drawBackground();
 
@@ -181,7 +185,6 @@ void multiPlay(GameData& data)
     drawLives(data.player1Lives, data.player2Lives);
 
     // Paddle 그리기
-
     drawPaddle(data.paddle1_x, data.paddle1_y, data.paddle_width, data.paddle_height); // 왼쪽 Paddle
     drawPaddle(data.paddle2_x, data.paddle2_y, data.paddle_width, data.paddle_height);  // 오른쪽 Paddle
 

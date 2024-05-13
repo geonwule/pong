@@ -1,9 +1,7 @@
 #include "Util.hpp"
 #include "Client.hpp"
 #include "Thread.hpp"
-#include <atomic>
-
-extern std::atomic<bool> atom_stop;
+#include "Cache.hpp"
 
 void error_msg(enum e_error flag)
 {
@@ -35,7 +33,7 @@ void signalHandler(int signum) {
         std::cout << "SIGTERM: Termination signal received" << std::endl;
     else
         std::cout << "Others: Signal " << signum << " received" << std::endl;
-    atom_stop = true;
+    Cache::atom_stop = true;
     cleanMemory();
     exit(signum);
 }
