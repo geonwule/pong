@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <atomic>
+#include <sstream>
 
 #include "Server.hpp"
 #include "Util.hpp"
@@ -257,9 +258,11 @@ void Server::sendGameData(e_game flag, GameData *data)
 
             if (bytes_sent == -1)
             {
-                std::cerr << "Disconnected client[" << client.id << "]" << std::endl;
-                // atom_stop = true;
-                // return ;
+                std::stringstream ss;
+                ss << "Disconnected client[" << client.id << "]";
+                std::cerr << ss.str() << std::endl;
+                atom_stop = true;
+                return ;
             }
         }
     }
@@ -268,13 +271,17 @@ void Server::sendGameData(e_game flag, GameData *data)
 void Server::receiveGameData(s_Client &player)
 {
     char buffer[BUFFER_SIZE] = {0};
+    std::stringstream ss;
 
     ssize_t valread = recv(player.fd, buffer, BUFFER_SIZE, 0);
-    if (valread == -1)
+    if (valread <= 0)
     {
-        std::cerr << "Failed to receive data from player[" << player.id << "]" << std::endl;
+        ss << "Failed to receive data from player[" << player.id << "]";
+        std::cerr << ss.str() << std::endl;
+        return;
     }
     buffer[valread] = 0;
     player.msg = buffer;
-    std::cout << "player[" << player.id << "]: " << player.msg << std::endl; // test
+    ss << "player[" << player.id << "]: " << player.msg;
+    std::cout << ss.str() << std::endl; // test
 }
