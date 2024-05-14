@@ -33,7 +33,7 @@ void signalHandler(int signum) {
         std::cout << "SIGTERM: Termination signal received" << std::endl;
     else if (signum == SIGPIPE)
     {
-        std::cout << "SIGPIPE: Broken pipe signal received" << std::endl;
+        std::cout << "SIGPIPE: Broken pipe signal received\n";
         Cache::atom_stop = true;
         Thread::cleanThread();
         return ;

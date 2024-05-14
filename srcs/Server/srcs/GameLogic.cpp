@@ -13,13 +13,14 @@ void threadReceiveData(s_Client &player, Paddle &paddle)
     std::string msg;
     while (!Cache::atom_stop)
     {
-        server->receiveGameData(player);
+        if (server->receiveGameData(player))
+            break;
         paddle.setDirection(player.msg);
     }
-    std::cout << "threadReceiveData over..." << std::endl;
+    std::cout << "[threadReceiveData] over..." << std::endl;
 }
 
-void threadSendData(GameData &data)
+void threadSendData(GameData &data, int *players_id)
 {
     Server *server = Server::getInstance();
     if (server == nullptr)
@@ -27,18 +28,18 @@ void threadSendData(GameData &data)
     
     while (data.isGameStart == GAME_LOADING)
     {
-        server->sendGameData(GAME_LOADING, &data);
+        server->sendGameData(GAME_LOADING, players_id, &data);
         sleep(1);
     }
 
-    std::cout << "Game Start" << std::endl;
-    server->sendGameData(GAME_START);
+    std::cout << "[threadSendData] Game Start" << std::endl;
+    server->sendGameData(GAME_START, players_id);
 
     while (!Cache::atom_stop)
     {
-        server->sendGameData(GAME_ING, &data);
+        server->sendGameData(GAME_ING, players_id, &data);
     }
-    std::cout << "threadSendData over..." << std::endl;
+    std::cout << "[threadSendData] over..." << std::endl;
 }
 
 static void inputData(GameData &data, Paddle &p1, Paddle &p2, CircleObject &ball)
@@ -69,6 +70,7 @@ void playGame()
     s_Client *player1, *player2;
     player1 = server->getClient();
     player2 = server->getClient();
+    int players_id[2] = {player1->id, player2->id};
 
     if (player1 == nullptr || player2 == nullptr)
         return ;
@@ -78,7 +80,7 @@ void playGame()
     inputData(data, p1, p2, ball);
     data.isGameStart = GAME_LOADING;
 
-    Thread::createThread(threadSendData, std::ref(data));
+    Thread::createThread(threadSendData, std::ref(data), players_id);
     sleep(3); //loading time
 
     data.isGameStart = GAME_ING;
@@ -101,6 +103,6 @@ void playGame()
         usleep(8000);
     }
     data.isGameStart = GAME_END;
-    std::cout << "PlayGame over..." << std::endl;
+    std::cout << "[playGame] over..." << std::endl;
 
 }

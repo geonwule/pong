@@ -226,48 +226,47 @@ void Server::sendClientMessage(int my_id, enum e_msg flag, char *msg)
         std::cout << msg;
 }
 
-void Server::sendGameData(e_game flag, GameData *data)
+void Server::sendGameData(e_game flag, int *players_id, GameData *data)
 {
-    for (int i = 0; i < MAX_CLIENTS; i++)
+    for (int i = 0; i < 2; i++)
     {
-        s_Client &client = clients[i];
-        if (client.fd > 0)
-        {
-            ssize_t bytes_sent;
-            if (flag == GAME_START)
-            {
-                std::string msg("Game Start");
-                bytes_sent = send(client.fd, msg.c_str(), msg.size(), 0);
-            }
-            else if (flag == GAME_LOADING)
-            {
-                std::string msg("Loading...");
-                bytes_sent = send(client.fd, msg.c_str(), msg.size(), 0);
-            }
-            else if (flag == GAME_ING)
-            {
-                bytes_sent = send(client.fd, data, sizeof(GameData), 0);
-                // std::cout << "sendGameData" << std::endl;
-            }
-            else
-            {
-                std::string msg("Game End");
-                bytes_sent = send(client.fd, msg.c_str(), msg.size(), 0);
-            }
+        s_Client &client = clients[players_id[i]];
 
-            if (bytes_sent == -1)
-            {
-                std::stringstream ss;
-                ss << "Disconnected client[" << client.id << "]";
-                std::cerr << ss.str() << std::endl;
-                Cache::atom_stop = true;
-                return ;
-            }
+        ssize_t bytes_sent;
+        std::string msg;
+
+        switch (flag)
+        {
+        case GAME_START:
+            msg = "Game Start";
+            bytes_sent = send(client.fd, msg.c_str(), msg.size(), 0);
+            break;
+        case GAME_LOADING:
+            msg = "Loading...";
+            bytes_sent = send(client.fd, msg.c_str(), msg.size(), 0);
+            break;
+        case GAME_ING:
+            bytes_sent = send(client.fd, data, sizeof(GameData), 0);
+            // std::cout << "sendGameData" << std::endl;
+            break;
+        default:
+            msg = "Game End";
+            bytes_sent = send(client.fd, msg.c_str(), msg.size(), 0);
+            break;
+        }
+
+        if (bytes_sent == -1)
+        {
+            std::stringstream ss;
+            ss << "[sendGameData] Disconnected client[" << client.id << "]\n";
+            std::cerr << ss.str();
+            Cache::atom_stop = true;
+            return;
         }
     }
 }
 
-void Server::receiveGameData(s_Client &player)
+int Server::receiveGameData(s_Client &player)
 {
     char buffer[BUFFER_SIZE] = {0};
     std::stringstream ss;
@@ -275,12 +274,13 @@ void Server::receiveGameData(s_Client &player)
     ssize_t valread = recv(player.fd, buffer, BUFFER_SIZE, 0);
     if (valread <= 0)
     {
-        ss << "Failed to receive data from player[" << player.id << "]";
-        std::cerr << ss.str() << std::endl;
-        return;
+        ss << "[receiveGameData] Failed to receive data from player[" << player.id << "]\n";
+        std::cerr << ss.str();
+        return EXIT_FAILURE;
     }
     buffer[valread] = 0;
     player.msg = buffer;
     ss << "player[" << player.id << "]: " << player.msg;
     std::cout << ss.str() << std::endl; // test
+    return EXIT_SUCCESS;
 }
