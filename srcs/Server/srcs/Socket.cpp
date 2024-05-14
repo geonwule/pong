@@ -82,6 +82,25 @@ void Server::bindAndListen()
         error_msg(FATAL_ERR);
 }
 
+static void processAccordingToErrno()
+{
+    switch (errno)
+    {
+    case EBADF: // 파일 디스크립터가 유효하지 않은 경우
+        std::cerr << "[select] failed due to invalid file descriptor\n";
+        break;
+    case EINTR: // select() 함수가 인터럽트에 의해 중단된 경우
+        std::cerr << "[select] was interrupted\n";
+        break;
+    case EINVAL: // timeout 파라미터가 잘못된 경우
+        std::cerr << "[select] failed due to invalid timeout\n";
+        break;
+    default:
+        std::cerr << "[select] failed\n";
+        error_msg(FATAL_ERR);
+    }
+}
+
 void Server::handleClientConnections()
 {
     fd_set read_fds;
@@ -105,7 +124,10 @@ void Server::handleClientConnections()
 
         int rv = select(max_fd + 1, &read_fds, nullptr, nullptr, nullptr);
         if (rv < 0)
-            error_msg(FATAL_ERR);
+        {
+            processAccordingToErrno();
+            continue;
+        }
         if (rv == 0) // timeout
             continue;
 
