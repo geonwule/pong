@@ -84,31 +84,27 @@ static void threadSendMessage(int sockfd)
 
         rv = select(1, &set, NULL, NULL, &timeout);
 
+        ssize_t read_bytes = 0;
         if (rv == -1)
             perror("select"); /* an error accured */
         else if (rv == 0)
             continue; /* a timeout occured */
         else
-            read(0, buff, sizeof buff); /* there was data to read */
+            read_bytes = read(0, buff, sizeof buff); /* there was data to read */
+        buff[read_bytes] = 0;
 
         std::string message(buff);
-        if (message == "exit")
+        if (message.compare("exit\n") == 0)
         {
+            std::cout << "Exit the game" << std::endl;
             Cache::atom_stop = true;
             break;
         }
-
-        message += '\n';
-
         if (send(sockfd, message.c_str(), message.size(), 0) == -1)
         {
             std::cerr << "Failed to send message" << std::endl;
             Cache::atom_stop = true;
             return;
-        }
-        else
-        {
-            std::cout << "Message sent: " << message << std::endl;
         }
     }
 }
