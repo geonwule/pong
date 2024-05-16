@@ -134,6 +134,7 @@ void Server::acceptNewClient(struct sockaddr_in &cli)
             client.id = next_id++;
             client.buff = nullptr;
             client.waiting_game = 0;
+            client.is_game_ing = false;
             sendClientMessage(client.id, ARRIVE, nullptr);
             break;
         }
@@ -145,7 +146,7 @@ void Server::handleClientMessage(fd_set &read_fds)
     for (int i = 0; i < MAX_CLIENTS; i++)
     {
         s_Client &client = clients[i];
-        if ((client.fd > 0 && FD_ISSET(client.fd, &read_fds)) && client.waiting_game == 0)
+        if ((client.fd > 0 && FD_ISSET(client.fd, &read_fds)) && client.is_game_ing == false)
         {
             char buff[BUFFER_SIZE];
             int read_bytes = recv(client.fd, buff, BUFFER_SIZE - 1, 0);
@@ -336,7 +337,7 @@ int Server::receiveGameData(s_Client &player, int &isGameStart)
     timeout.tv_sec = 0;
     timeout.tv_usec = 500000; // 0.5 seconds
 
-    rv = select(1, &set, NULL, NULL, &timeout);
+    rv = select(player.fd + 1, &set, NULL, NULL, &timeout);
 
     if (rv == -1)
         perror("select"); /* an error accured */
