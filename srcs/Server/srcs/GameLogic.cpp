@@ -123,11 +123,7 @@ void playGame(s_Client *player1,  s_Client *player2)
 
     for (int i = 0; i < 3; i++)
     {
-        if (t[i] != nullptr)
-        {
-            t[i]->join();
-            delete t[i];
-        }
+        Thread::joinThread(t[i]);
     }
 
     player1->is_game_ing = false;

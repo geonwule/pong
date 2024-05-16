@@ -29,6 +29,7 @@ public:
         // return EXIT_FAILURE;
     }
     static void cleanThread();
+    static void joinThread(std::thread *thread);
 };
 
 #endif // THREAD_HPP
