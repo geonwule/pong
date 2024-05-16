@@ -101,26 +101,111 @@ static void processAccordingToErrno()
     }
 }
 
+void Server::prepareReadFds(fd_set &read_fds, int &max_fd)
+{
+    FD_ZERO(&read_fds);
+    FD_SET(serv_fd, &read_fds);
+
+    max_fd = serv_fd;
+
+    for (int i = 0; i < MAX_CLIENTS; i++)
+    {
+        if (clients[i].fd > 0)
+        {
+            FD_SET(clients[i].fd, &read_fds);
+            if (clients[i].fd > max_fd)
+                max_fd = clients[i].fd;
+        }
+    }
+}
+
+void Server::acceptNewClient(struct sockaddr_in &cli)
+{
+    int len = sizeof(cli);
+    int new_fd = accept(serv_fd, (struct sockaddr *)&cli, (socklen_t *)&len);
+    if (new_fd < 0)
+        error_msg(FATAL_ERR);
+    for (int i = 0; i < MAX_CLIENTS; i++)
+    {
+        s_Client &client = clients[i];
+        if (client.fd == 0)
+        {
+            client.fd = new_fd;
+            client.id = next_id++;
+            client.buff = nullptr;
+            client.waiting_game = 0;
+            sendClientMessage(client.id, ARRIVE, nullptr);
+            break;
+        }
+    }
+}
+
+void Server::handleClientMessage(fd_set &read_fds)
+{
+    for (int i = 0; i < MAX_CLIENTS; i++)
+    {
+        s_Client &client = clients[i];
+        if ((client.fd > 0 && FD_ISSET(client.fd, &read_fds)) && client.waiting_game == 0)
+        {
+            char buff[BUFFER_SIZE];
+            int read_bytes = recv(client.fd, buff, BUFFER_SIZE - 1, 0);
+            if (read_bytes <= 0)
+            {
+                std::cout << "Client[" << client.id << "] left" << std::endl;
+                close(client.fd);
+                client.fd = 0;
+                sendClientMessage(client.id, LEFT, NULL);
+                if (client.waiting_game == 1)
+                    client_num--;
+            }
+            else
+            {
+                buff[read_bytes] = 0;
+                std::cout << "test: " << client.id << " :" << buff; // test
+                client.buff = str_join(client.buff, buff);
+                while (read_bytes == BUFFER_SIZE - 1)
+                {
+                    read_bytes = recv(client.fd, buff, BUFFER_SIZE - 1, 0);
+                    if (read_bytes <= 0)
+                        break;
+                    buff[read_bytes] = 0;
+                    client.buff = str_join(client.buff, buff);
+                }
+                char *msg;
+                while (extract_message(&client.buff, &msg) > 0)
+                {
+                    std::string str(msg);
+                    if (str.compare("Game Start\n") == 0)
+                    {
+                        client_num++;
+                        client.waiting_game = 1;
+                        std::cout << "client_num = " << client_num << std::endl;
+                        if (client_num == 2)
+                        {
+                            std::thread *t = Thread::createThread(playGame);
+                            std::cout << "[handleClientMessage]playGame thread created\n"; // test
+                            if (t)
+                                t->detach();
+                            client_num = 0;
+                        }
+                    }
+                    else
+                        sendClientMessage(client.id, MSG, msg);
+                    free(msg);
+                }
+            }
+        }
+    }
+}
+
 void Server::handleClientConnections()
 {
     fd_set read_fds;
     struct sockaddr_in cli;
     while (1)
     {
-        FD_ZERO(&read_fds);
-        FD_SET(serv_fd, &read_fds);
-
         int max_fd = serv_fd;
-
-        for (int i = 0; i < MAX_CLIENTS; i++)
-        {
-            if (clients[i].fd > 0 && clients[i].game_ing == 0)
-            {
-                FD_SET(clients[i].fd, &read_fds);
-                if (clients[i].fd > max_fd)
-                    max_fd = clients[i].fd;
-            }
-        }
+        prepareReadFds(read_fds, max_fd);
 
         int rv = select(max_fd + 1, &read_fds, nullptr, nullptr, nullptr);
         if (rv < 0)
@@ -133,68 +218,10 @@ void Server::handleClientConnections()
 
         if (FD_ISSET(serv_fd, &read_fds))
         {
-            int len = sizeof(cli);
-            int new_fd = accept(serv_fd, (struct sockaddr *)&cli, (socklen_t *)&len);
-            if (new_fd < 0)
-                error_msg(FATAL_ERR);
-            for (int i = 0; i < MAX_CLIENTS; i++)
-            {
-                s_Client &client = clients[i];
-                if (client.fd == 0)
-                {
-                    client.fd = new_fd;
-                    client.id = next_id++;
-                    client.buff = nullptr;
-                    client_num++;
-                    sendClientMessage(client.id, ARRIVE, nullptr);
-                    if (client_num == 2)
-                    {
-                        // thread_arr[0] = new std::thread(playGame);
-                        Cache::atom_stop = false;
-                        Thread::createThread(playGame);
-                        client_num = 0;
-                    }
-                    break;
-                }
-            }
+            acceptNewClient(cli);
         }
 
-        for (int i = 0; i < MAX_CLIENTS; i++)
-        {
-            s_Client &client = clients[i];
-            if (client.fd > 0 && FD_ISSET(client.fd, &read_fds) && client.game_ing == 0)
-            {
-                char buff[BUFFER_SIZE];
-                int read_bytes = recv(client.fd, buff, BUFFER_SIZE - 1, 0);
-                if (read_bytes <= 0)
-                {
-                    std::cout << "Client[" << client.id << "] left" << std::endl;
-                    close(client.fd);
-                    clients[i].fd = 0;
-                    sendClientMessage(client.id, LEFT, NULL);
-                }
-                else
-                {
-                    buff[read_bytes] = 0;
-                    std::cout << "test: " << client.id << " :" << buff; // test
-                    client.buff = str_join(client.buff, buff);
-                    while (read_bytes == BUFFER_SIZE - 1)
-                    {
-                        read_bytes = recv(client.fd, buff, BUFFER_SIZE - 1, 0);
-                        if (read_bytes <= 0)
-                            break;
-                        buff[read_bytes] = 0;
-                        client.buff = str_join(client.buff, buff);
-                    }
-                    char *msg;
-                    while (extract_message(&clients[i].buff, &msg) > 0)
-                    {
-                        sendClientMessage(client.id, MSG, msg);
-                        free(msg);
-                    }
-                }
-            }
-        }
+        handleClientMessage(read_fds);
     }
 }
 
@@ -272,8 +299,14 @@ void Server::sendGameData(e_game flag, int *players_id, GameData *data)
             // std::cout << "sendGameData" << std::endl;
             break;
         default:
+            bytes_sent = send(client.fd, data, sizeof(GameData), 0);
             msg = "Game End";
             bytes_sent = send(client.fd, msg.c_str(), msg.size(), 0);
+
+            std::stringstream ss;
+            ss << "[sendGameData] Game End client[" << client.id << "]\n";
+            std::cout << ss.str();
+
             break;
         }
 
@@ -288,21 +321,43 @@ void Server::sendGameData(e_game flag, int *players_id, GameData *data)
     }
 }
 
-int Server::receiveGameData(s_Client &player)
+int Server::receiveGameData(s_Client &player, int &isGameStart)
 {
     char buffer[BUFFER_SIZE] = {0};
     std::stringstream ss;
 
-    ssize_t valread = recv(player.fd, buffer, BUFFER_SIZE, 0);
+    fd_set set;
+    struct timeval timeout;
+    int rv;
+    FD_ZERO(&set);           /* clear the set */
+    FD_SET(player.fd, &set); /* add our file descriptor to the set */
+    ssize_t valread = 0;
+
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 500000; // 0.5 seconds
+
+    rv = select(1, &set, NULL, NULL, &timeout);
+
+    if (rv == -1)
+        perror("select"); /* an error accured */
+    else if (rv == 0)
+        return EXIT_FAILURE; /* a timeout occured */
+    else
+        valread = recv(player.fd, buffer, BUFFER_SIZE, 0);
+
     if (valread <= 0)
     {
         ss << "[receiveGameData] Failed to receive data from player[" << player.id << "]\n";
         std::cerr << ss.str();
         return EXIT_FAILURE;
     }
+
+    if (isGameStart == GAME_END)
+        return EXIT_FAILURE;
+
     buffer[valread] = 0;
     player.msg = buffer;
-    ss << "player[" << player.id << "]: " << player.msg;
-    std::cout << ss.str() << std::endl; // test
+    // ss << "player[" << player.id << "]: " << player.msg;
+    // std::cout << ss.str() << std::endl; // test
     return EXIT_SUCCESS;
 }

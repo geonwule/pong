@@ -29,7 +29,7 @@ struct s_Client
 {
     int id, fd;
     char *buff;
-    int game_ing;
+    int waiting_game;
     std::string msg;
 };
 
@@ -61,6 +61,11 @@ private:
     void bindAndListen();
     void handleClientConnections();
 
+    /* handleClientConnections() */
+    void prepareReadFds(fd_set &read_fds, int &max_fd);
+    void acceptNewClient(struct sockaddr_in &cli);
+    void handleClientMessage(fd_set &read_fds);
+
 public:
     ~Server();
 
@@ -68,13 +73,13 @@ public:
     static int setInstance(const char *port_num);
     static int setInstance(const char *ip, const char *port_num);
     static Server *getInstance();
-    s_Client *getClient();
+    s_Client *getPlayer();
 
     /* Socket.cpp */
     void runServer();
     void sendClientMessage(int my_id, enum e_msg flag, char *msg);
     void sendGameData(e_game flag, int *players_id, GameData *data = nullptr);
-    int receiveGameData(s_Client &player);
+    int receiveGameData(s_Client &player, int &isGameStart);
 };
 
 #endif // SERVER_HPP
