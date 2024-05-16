@@ -30,6 +30,7 @@ struct s_Client
     int id, fd;
     char *buff;
     int waiting_game;
+    bool is_game_ing;
     std::string msg;
 };
 
@@ -47,7 +48,6 @@ private:
 
     s_Client clients[MAX_CLIENTS];
     int next_id = 0;
-    int client_num = 0;
 
     static Server *_instance;
 

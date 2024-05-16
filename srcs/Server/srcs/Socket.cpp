@@ -7,8 +7,9 @@
 #include "Thread.hpp"
 #include "GameFrame.hpp"
 #include "Cache.hpp"
+#include "MatchMaking.hpp"
 
-void playGame();
+// void playGame();
 
 static int extract_message(char **buf, char **msg)
 {
@@ -110,7 +111,7 @@ void Server::prepareReadFds(fd_set &read_fds, int &max_fd)
 
     for (int i = 0; i < MAX_CLIENTS; i++)
     {
-        if (clients[i].fd > 0)
+        if (clients[i].fd > 0)// && clients[i].is_game_ing == false)
         {
             FD_SET(clients[i].fd, &read_fds);
             if (clients[i].fd > max_fd)
@@ -156,8 +157,6 @@ void Server::handleClientMessage(fd_set &read_fds)
                 close(client.fd);
                 client.fd = 0;
                 sendClientMessage(client.id, LEFT, NULL);
-                if (client.waiting_game == 1)
-                    client_num--;
             }
             else
             {
@@ -178,17 +177,8 @@ void Server::handleClientMessage(fd_set &read_fds)
                     std::string str(msg);
                     if (str.compare("Game Start\n") == 0)
                     {
-                        client_num++;
                         client.waiting_game = 1;
-                        std::cout << "client_num = " << client_num << std::endl;
-                        if (client_num == 2)
-                        {
-                            std::thread *t = Thread::createThread(playGame);
-                            std::cout << "[handleClientMessage]playGame thread created\n"; // test
-                            if (t)
-                                t->detach();
-                            client_num = 0;
-                        }
+                        MatchMaking::addPlayer(&client);
                     }
                     else
                         sendClientMessage(client.id, MSG, msg);
