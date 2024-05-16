@@ -142,6 +142,7 @@ static void cursor_position_callback(GLFWwindow *window, double xpos, double ypo
 
 void rendering()
 {
+    std::cout << "[rendering] rendering start\n";
     // 오류 콜백 함수 설정
     glfwSetErrorCallback(error_callback);
 
@@ -178,6 +179,8 @@ void rendering()
 
     while (!glfwWindowShouldClose(window) && !Cache::atom_stop)
     {
+        if (!Cache::isGameStart)
+            break;
         // 시간 측정
         // time = glfwGetTime();
 
@@ -199,5 +202,7 @@ void rendering()
     }
 
     glfwTerminate();
+
+    std::cout << "[rendering] rendering end\n";
     return;
 }

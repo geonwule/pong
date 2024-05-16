@@ -29,6 +29,7 @@ int main(int ac, char **av)
     {
         if (Cache::isGameStart)
             rendering();
+        usleep(5000);
         // std::cout << "Waiting for the game to start..." << std::endl;
     }
     cleanMemory();

@@ -27,12 +27,12 @@ static void threadReceiveMessage(int sockfd)
 {
     GameData &data = Cache::data;
 
-    char buffer[1024] = {0};
+    char buffer[BUFFER_SIZE] = {0};
     while (!Cache::atom_stop)
     {
         if (!Cache::isGameStart)
         {
-            int valread = recv(sockfd, buffer, 1024, 0);
+            int valread = recv(sockfd, buffer, BUFFER_SIZE - 1, 0);
             if (valread <= 0)
             {
                 std::cerr << "Failed to receive message" << std::endl;
@@ -62,6 +62,11 @@ static void threadReceiveMessage(int sockfd)
                 // exit(1);
                 Cache::atom_stop = true;
                 return;
+            }
+            if (data.isGameStart == GAME_END)
+            {
+                Cache::isGameStart = false;
+                continue;
             }
             // std::cout << "Received GameData" << std::endl;
         }
