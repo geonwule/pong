@@ -12,6 +12,12 @@ https://www.d5br5.dev/blog/pro_tip/tech_stack_icon  // 기술스택 뱃지 활�
 <img src="https://img.shields.io/badge/@-00599C?style=flat&logo=@&logoColor=white"/> // 기술스택 뱃지 양식
 -->
 
+## 아키텍처
+
+<img width="2403" alt="image" src="https://github.com/geonwule/pong/assets/117799441/967305ca-e93d-41d3-89aa-66314415bfa1">
+
+
+
 ## 설치
 
 Linux & MacOS:
