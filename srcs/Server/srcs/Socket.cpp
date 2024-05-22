@@ -289,7 +289,8 @@ void Server::sendGameData(e_game flag, int *players_id, GameData *data)
             bytes_sent = send(client.fd, data, sizeof(GameData), 0);
             // std::cout << "sendGameData" << std::endl;
             break;
-        default:
+        case GAME_END:
+            data->isGameStart = GAME_END;
             bytes_sent = send(client.fd, data, sizeof(GameData), 0);
             msg = "Game End";
             bytes_sent = send(client.fd, msg.c_str(), msg.size(), 0);
