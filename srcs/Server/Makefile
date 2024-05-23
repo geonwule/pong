@@ -9,7 +9,7 @@ SERVER_NAME = pong_server
 SERVER_CFLAGS = -Wall -Wextra -Werror -std=c++11
 
 ifeq ($(shell uname -s), Darwin) #MacOS
-LDFLAGS = 
+#LDFLAGS = -pthread 스레드 사용시 추가 해야한다는 지식 공부후 추가예정
 else #Linux 
 LDFLAGS = -lpthread  # for linux
 endif

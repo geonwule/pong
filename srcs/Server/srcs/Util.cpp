@@ -27,6 +27,12 @@ void cleanMemory()
 }
 
 void signalHandler(int signum) {
+    if (Cache::atom_stop)
+    {
+        std::cout << "Signal " << signum << " received but already stopped\n";
+        return ;
+    }
+    
     Cache::atom_stop = true;
     if (signum == SIGINT)
         std::cout << "SIGINT: Interrupt signal received" << std::endl;

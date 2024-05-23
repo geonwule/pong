@@ -156,6 +156,9 @@ void Server::handleClientMessage(fd_set &read_fds)
             {
                 std::cout << "Client[" << client.id << "] left" << std::endl;
                 close(client.fd);
+                if (client.buff)
+                    delete client.buff;
+                client.buff = nullptr;
                 client.fd = 0;
                 sendClientMessage(client.id, LEFT, NULL);
             }
