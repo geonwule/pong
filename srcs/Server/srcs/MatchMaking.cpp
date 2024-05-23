@@ -9,6 +9,9 @@ void playGame(s_Client *player1, s_Client *player2);
 
 int MatchMaking::addPlayThread(std::thread *thread)
 {
+    if (thread == nullptr)
+        return EXIT_FAILURE;
+
     for (int i = 0; i < MAX_THREAD; i++)
     {
         if (_play_thread[i] == nullptr)

@@ -33,6 +33,8 @@ Server::~Server()
         close(serv_fd);
     for (int i = 0; i < MAX_CLIENTS; i++)
     {
+        if (clients[i].buff)
+            delete clients[i].buff;
         if (clients[i].fd > 0)
             close(clients[i].fd);
     }
