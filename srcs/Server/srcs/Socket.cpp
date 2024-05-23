@@ -111,7 +111,7 @@ void Server::prepareReadFds(fd_set &read_fds, int &max_fd)
 
     for (int i = 0; i < MAX_CLIENTS; i++)
     {
-        if (clients[i].fd > 0)// && clients[i].is_game_ing == false)
+        if (clients[i].fd > 0) // && clients[i].is_game_ing == false)
         {
             FD_SET(clients[i].fd, &read_fds);
             if (clients[i].fd > max_fd)
@@ -136,6 +136,7 @@ void Server::acceptNewClient(struct sockaddr_in &cli)
             client.buff = nullptr;
             client.waiting_game = 0;
             client.is_game_ing = false;
+            client.is_connected = true;
             sendClientMessage(client.id, ARRIVE, nullptr);
             break;
         }
@@ -266,54 +267,58 @@ void Server::sendClientMessage(int my_id, enum e_msg flag, char *msg)
         std::cout << msg;
 }
 
-void Server::sendGameData(e_game flag, int *players_id, GameData *data)
+void Server::sendGameData(e_game flag, s_Client &player, GameData *data)
 {
-    for (int i = 0; i < 2; i++)
+
+    if (player.is_connected == false)
+        return;
+
+    ssize_t bytes_sent;
+    std::string msg;
+
+    switch (flag)
     {
-        s_Client &client = clients[players_id[i]];
+    case GAME_START:
+        msg = "Game Start";
+        bytes_sent = send(player.fd, msg.c_str(), msg.size(), 0);
+        break;
+    case GAME_LOADING:
+        msg = "Loading...";
+        bytes_sent = send(player.fd, msg.c_str(), msg.size(), 0);
+        break;
+    case GAME_ING:
+        bytes_sent = send(player.fd, data, sizeof(GameData), 0);
+        // std::cout << "sendGameData" << std::endl;
+        break;
+    case GAME_END:
+        data->isGameStart = GAME_END;
+        bytes_sent = send(player.fd, data, sizeof(GameData), 0);
+        msg = "Game End";
+        bytes_sent = send(player.fd, msg.c_str(), msg.size(), 0);
 
-        ssize_t bytes_sent;
-        std::string msg;
+        std::stringstream ss;
+        ss << "[sendGameData] Game End player[" << player.id << "]\n";
+        std::cout << ss.str();
 
-        switch (flag)
-        {
-        case GAME_START:
-            msg = "Game Start";
-            bytes_sent = send(client.fd, msg.c_str(), msg.size(), 0);
-            break;
-        case GAME_LOADING:
-            msg = "Loading...";
-            bytes_sent = send(client.fd, msg.c_str(), msg.size(), 0);
-            break;
-        case GAME_ING:
-            bytes_sent = send(client.fd, data, sizeof(GameData), 0);
-            // std::cout << "sendGameData" << std::endl;
-            break;
-        default:
-            bytes_sent = send(client.fd, data, sizeof(GameData), 0);
-            msg = "Game End";
-            bytes_sent = send(client.fd, msg.c_str(), msg.size(), 0);
+        break;
+    }
 
-            std::stringstream ss;
-            ss << "[sendGameData] Game End client[" << client.id << "]\n";
-            std::cout << ss.str();
-
-            break;
-        }
-
-        if (bytes_sent == -1)
-        {
-            std::stringstream ss;
-            ss << "[sendGameData] Disconnected client[" << client.id << "]\n";
-            std::cerr << ss.str();
-            Cache::atom_stop = true;
-            return;
-        }
+    if (bytes_sent == -1)
+    {
+        std::stringstream ss;
+        ss << "[sendGameData] Disconnected player[" << player.id << "]\n";
+        std::cerr << ss.str();
+        // Cache::atom_stop = true;
+        player.is_connected = false;
+        return;
     }
 }
 
 int Server::receiveGameData(s_Client &player, int &isGameStart)
 {
+    if (player.is_connected == false)
+        return EXIT_FAILURE;
+
     char buffer[BUFFER_SIZE] = {0};
     std::stringstream ss;
 
@@ -340,6 +345,7 @@ int Server::receiveGameData(s_Client &player, int &isGameStart)
     {
         ss << "[receiveGameData] Failed to receive data from player[" << player.id << "]\n";
         std::cerr << ss.str();
+        player.is_connected = false;
         return EXIT_FAILURE;
     }
 

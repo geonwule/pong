@@ -31,13 +31,18 @@ void signalHandler(int signum) {
         std::cout << "SIGINT: Interrupt signal received" << std::endl;
     else if (signum == SIGTERM)
         std::cout << "SIGTERM: Termination signal received" << std::endl;
-    else if (signum == SIGPIPE)
-    {
-        std::cout << "SIGPIPE: Broken pipe signal received\n";
-        Cache::atom_stop = true;
-        Thread::cleanThread();
-        return ;
-    }
+    // else if (signum == SIGPIPE)
+    // {
+    //     if (Cache::atom_stop)
+    //     {
+    //         std::cout << "SIGPIPE: Broken pipe signal received but already stopped\n";
+    //         return ;
+    //     }
+    //     std::cout << "SIGPIPE: Broken pipe signal received\n";
+    //     Cache::atom_stop = true;
+    //     Thread::cleanThread();
+    //     return ;
+    // }
     else
         std::cout << "Others: Signal " << signum << " received" << std::endl;
     cleanMemory();

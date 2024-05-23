@@ -29,7 +29,7 @@ void MatchMaking::matchPlayers()
     if (player1 == nullptr || player2 == nullptr)
         error_msg(FATAL_ERR);
     
-    std::thread *thread = Thread::createThread(playGame, player1, player2); //,check_thread_over); playGame이 종료되었음을 알수있는 변수를 넣고 그변수를 저장하고 있는 스레드에서 핸들링 하고 있다가 join해주게 추가 예정
+    Thread::createThread(playGame, player1, player2); //,check_thread_over); playGame이 종료되었음을 알수있는 변수를 넣고 그변수를 저장하고 있는 스레드에서 핸들링 하고 있다가 join해주게 추가 예정
     //addPlayThread(thread);
     std::cout << "[MatchMaking::matchPlayers] over" << std::endl;
 }

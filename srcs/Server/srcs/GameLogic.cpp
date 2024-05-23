@@ -6,7 +6,7 @@
 
 void threadReceiveData(GameData &data, s_Client &player, Paddle &paddle)
 {
-    std::cout << "[threadReceiveData] start..." << std::endl;
+    std::cout << "[threadReceiveData] start... player [" << player.id << "]" << std::endl;
     Server *server = Server::getInstance();
     if (server == nullptr)
         error_msg(FATAL_ERR);
@@ -19,32 +19,33 @@ void threadReceiveData(GameData &data, s_Client &player, Paddle &paddle)
         if (server->receiveGameData(player, data.isGameStart) == EXIT_SUCCESS)
             paddle.setDirection(player.msg);
     }
-    std::cout << "[threadReceiveData] over..." << std::endl;
+    std::cout << "[threadReceiveData] over... player [" << player.id << "]" << std::endl;
 }
 
-void threadSendData(GameData &data, int *players_id)
+void threadSendData(GameData &data, s_Client &player)
 {
+    std::cout << "[threadSendData] start... player [" << player.id << "]" << std::endl;
     Server *server = Server::getInstance();
     if (server == nullptr)
         error_msg(FATAL_ERR);
     
     while (data.isGameStart == GAME_LOADING)
     {
-        server->sendGameData(GAME_LOADING, players_id, &data);
+        server->sendGameData(GAME_LOADING, player, &data);
         sleep(1);
     }
 
     std::cout << "[threadSendData] Game Start" << std::endl;
-    server->sendGameData(GAME_START, players_id);
+    server->sendGameData(GAME_START, player);
 
     while (!Cache::atom_stop)
     {
         if (data.isGameStart == GAME_END)
             break;
-        server->sendGameData(GAME_ING, players_id, &data);
+        server->sendGameData(GAME_ING, player, &data);
     }
-    server->sendGameData(GAME_END, players_id, &data);
-    std::cout << "[threadSendData] over..." << std::endl;
+    server->sendGameData(GAME_END, player, &data);
+    std::cout << "[threadSendData] over... player [" << player.id << "]" << std::endl;
 }
 
 static void inputData(GameData &data, Paddle &p1, Paddle &p2, CircleObject &ball)
@@ -79,28 +80,22 @@ void playGame(s_Client *player1,  s_Client *player2)
     if (server == nullptr)
         error_msg(FATAL_ERR);
 
-    // s_Client *player1, *player2;
-    // player1 = server->getPlayer();
-    // player2 = server->getPlayer();
-
-    int players_id[2] = {player1->id, player2->id};
-
-
     Paddle p1(PLAYER1), p2(PLAYER2);
     CircleObject ball;
     inputData(data, p1, p2, ball);
     data.isGameStart = GAME_LOADING;
 
-    std::thread *t[3];
+    std::thread *t[4];
 
-    t[0] = Thread::createThread(threadSendData, std::ref(data), players_id);
+    t[0] = Thread::createThread(threadSendData, std::ref(data), std::ref(*player1));
+    t[1] = Thread::createThread(threadSendData, std::ref(data), std::ref(*player2));
     sleep(3); //loading time
 
     data.isGameStart = GAME_ING;
     
     sleep(1); //window loading time
-    t[1] = Thread::createThread(threadReceiveData, std::ref(data), std::ref(*player1), std::ref(p1));
-    t[2] = Thread::createThread(threadReceiveData, std::ref(data), std::ref(*player2), std::ref(p2));
+    t[2] = Thread::createThread(threadReceiveData, std::ref(data), std::ref(*player1), std::ref(p1));
+    t[3] = Thread::createThread(threadReceiveData, std::ref(data), std::ref(*player2), std::ref(p2));
     while (!Cache::atom_stop)
     {
         if (p1.getLife() == 0 || p2.getLife() == 0)
@@ -121,7 +116,7 @@ void playGame(s_Client *player1,  s_Client *player2)
         usleep(8000);
     }
 
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 4; i++)
     {
         Thread::joinThread(t[i]);
     }
