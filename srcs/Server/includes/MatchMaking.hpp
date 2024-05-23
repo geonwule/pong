@@ -15,9 +15,11 @@ private:
     static void matchPlayers();
     static bool checkDoublePlayer(s_Client *player);
     static void removePlayer(s_Client *player);
+    static int addPlayThread(std::thread *thread);
 
 public:
     static void addPlayer(s_Client *player);
+    static void monitoringGameplayThread();
 };
 
 #endif // MATCHMAKING_HPP
