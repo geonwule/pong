@@ -10,6 +10,9 @@ Server::Server(const char *port_num) : _ip_address(inet_addr(IP_ADDRESS)), _port
         std::cerr << "port_num is invalid" << std::endl;
         error_msg(FATAL_ERR);
     }
+    
+    for (int i = 0; i < MAX_CLIENTS; i++)
+        clients[i].fd = 0;
 }
 
 Server::Server(const char *ip_address, const char *port_num) : _ip_address(inet_addr(ip_address)), _port_num(atoi(port_num)), serv_fd(0)
@@ -19,6 +22,9 @@ Server::Server(const char *ip_address, const char *port_num) : _ip_address(inet_
         std::cerr << "port_num is invalid" << std::endl;
         error_msg(FATAL_ERR);
     }
+
+    for (int i = 0; i < MAX_CLIENTS; i++)
+        clients[i].fd = 0;
 }
 
 Server::~Server()
@@ -27,6 +33,8 @@ Server::~Server()
         close(serv_fd);
     for (int i = 0; i < MAX_CLIENTS; i++)
     {
+        if (clients[i].buff)
+            delete clients[i].buff;
         if (clients[i].fd > 0)
             close(clients[i].fd);
     }
@@ -57,13 +65,14 @@ Server *Server::getInstance()
     return _instance;
 }
 
-s_Client *Server::getClient()
+s_Client *Server::getPlayer()
 {
     for (int i = 0; i < MAX_CLIENTS; i++)
     {
-        if (clients[i].fd > 0 && !clients[i].game_ing)
+        if (clients[i].fd > 0 && clients[i].waiting_game)
         {
-            clients[i].game_ing = 1;
+            clients[i].waiting_game = 0;
+            clients[i].is_game_ing = true;
             return &clients[i];
         }
     }

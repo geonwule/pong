@@ -27,12 +27,12 @@ static void threadReceiveMessage(int sockfd)
 {
     GameData &data = Cache::data;
 
-    char buffer[1024] = {0};
+    char buffer[BUFFER_SIZE] = {0};
     while (!Cache::atom_stop)
     {
         if (!Cache::isGameStart)
         {
-            int valread = recv(sockfd, buffer, 1024, 0);
+            int valread = recv(sockfd, buffer, BUFFER_SIZE - 1, 0);
             if (valread <= 0)
             {
                 std::cerr << "Failed to receive message" << std::endl;
@@ -63,6 +63,11 @@ static void threadReceiveMessage(int sockfd)
                 Cache::atom_stop = true;
                 return;
             }
+            if (data.isGameStart == GAME_END)
+            {
+                Cache::isGameStart = false;
+                continue;
+            }
             // std::cout << "Received GameData" << std::endl;
         }
     }
@@ -84,31 +89,27 @@ static void threadSendMessage(int sockfd)
 
         rv = select(1, &set, NULL, NULL, &timeout);
 
+        ssize_t read_bytes = 0;
         if (rv == -1)
             perror("select"); /* an error accured */
         else if (rv == 0)
             continue; /* a timeout occured */
         else
-            read(0, buff, sizeof buff); /* there was data to read */
+            read_bytes = read(0, buff, sizeof buff); /* there was data to read */
+        buff[read_bytes] = 0;
 
         std::string message(buff);
-        if (message == "exit")
+        if (message.compare("exit\n") == 0)
         {
+            std::cout << "Exit the game" << std::endl;
             Cache::atom_stop = true;
             break;
         }
-
-        message += '\n';
-
         if (send(sockfd, message.c_str(), message.size(), 0) == -1)
         {
             std::cerr << "Failed to send message" << std::endl;
             Cache::atom_stop = true;
             return;
-        }
-        else
-        {
-            std::cout << "Message sent: " << message << std::endl;
         }
     }
 }

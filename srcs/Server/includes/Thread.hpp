@@ -4,7 +4,7 @@
 #include <iostream>
 #include <thread>
 
-#define MAX_THREAD 4
+#define MAX_THREAD 40
 
 class Thread
 {
@@ -14,19 +14,22 @@ private:
 
 public:
     template <class _Fp, class... _Args>
-    static int createThread(_Fp&& __f, _Args&&... __args)
+    static std::thread *createThread(_Fp&& __f, _Args&&... __args)
     {
         for (int i = 0; i < MAX_THREAD; i++)
         {
             if (thread_arr[i] == nullptr)
             {
                 thread_arr[i] = new std::thread(__f, __args...);
-                return EXIT_SUCCESS;
+                return thread_arr[i];
+                // return EXIT_SUCCESS;
             }
         }
-        return EXIT_FAILURE;
+        return nullptr;
+        // return EXIT_FAILURE;
     }
     static void cleanThread();
+    static void joinThread(std::thread *thread);
 };
 
 #endif // THREAD_HPP

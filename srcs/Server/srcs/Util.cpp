@@ -27,17 +27,29 @@ void cleanMemory()
 }
 
 void signalHandler(int signum) {
+    if (Cache::atom_stop)
+    {
+        std::cout << "Signal " << signum << " received but already stopped\n";
+        return ;
+    }
+    
+    Cache::atom_stop = true;
     if (signum == SIGINT)
         std::cout << "SIGINT: Interrupt signal received" << std::endl;
     else if (signum == SIGTERM)
         std::cout << "SIGTERM: Termination signal received" << std::endl;
-    else if (signum == SIGPIPE)
-    {
-        std::cout << "SIGPIPE: Broken pipe signal received" << std::endl;
-        Cache::atom_stop = true;
-        Thread::cleanThread();
-        return ;
-    }
+    // else if (signum == SIGPIPE)
+    // {
+    //     if (Cache::atom_stop)
+    //     {
+    //         std::cout << "SIGPIPE: Broken pipe signal received but already stopped\n";
+    //         return ;
+    //     }
+    //     std::cout << "SIGPIPE: Broken pipe signal received\n";
+    //     Cache::atom_stop = true;
+    //     Thread::cleanThread();
+    //     return ;
+    // }
     else
         std::cout << "Others: Signal " << signum << " received" << std::endl;
     cleanMemory();

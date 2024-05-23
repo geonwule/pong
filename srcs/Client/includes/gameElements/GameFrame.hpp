@@ -9,8 +9,8 @@
 
 enum e_canvas
 {
-    WIDTH=1500,
-    HEIGHT=750,
+    WIDTH=800,
+    HEIGHT=400,
 };
 
 enum e_game
