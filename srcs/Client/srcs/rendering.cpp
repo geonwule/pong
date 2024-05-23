@@ -201,6 +201,7 @@ void rendering()
         glfwPollEvents();
     }
 
+    glfwDestroyWindow(window);
     glfwTerminate();
 
     std::cout << "[rendering] rendering end\n";

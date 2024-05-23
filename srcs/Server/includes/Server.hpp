@@ -32,6 +32,7 @@ struct s_Client
     int waiting_game;
     bool is_game_ing;
     std::string msg;
+    bool is_connected;
 };
 
 struct GameData;
@@ -78,7 +79,7 @@ public:
     /* Socket.cpp */
     void runServer();
     void sendClientMessage(int my_id, enum e_msg flag, char *msg);
-    void sendGameData(e_game flag, int *players_id, GameData *data = nullptr);
+    void sendGameData(e_game flag, s_Client &player, GameData *data = nullptr);
     int receiveGameData(s_Client &player, int &isGameStart);
 };
 

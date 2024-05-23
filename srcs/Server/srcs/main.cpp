@@ -6,7 +6,8 @@ int main(int ac, char **av)
 {
     std::signal(SIGINT, signalHandler); // Ctrl + C
     std::signal(SIGTERM, signalHandler); // kill
-    std::signal(SIGPIPE, signalHandler); //SIGPIPE
+    std::signal(SIGPIPE, SIG_IGN);
+    // std::signal(SIGPIPE, signalHandler); //SIGPIPE
 
     if (!(ac == 2 || ac == 3))
     {
