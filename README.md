@@ -5,7 +5,9 @@
 
 ## 기술스택
 <img src="https://img.shields.io/badge/C/C++-00599C?style=flat&logo=cplusplus&logoColor=white"/><a>
-<img src="https://img.shields.io/badge/OpenGL-5586A4?style=flat&logo=OpenGL@&logoColor=white"/>
+<img src="https://img.shields.io/badge/OpenGL-5586A4?style=flat&logo=OpenGL&logoColor=white"/>
+<img src="https://img.shields.io/badge/Socket.io-010101?style=flat&logo=socketdotio&logoColor=white"/>
+<img src="https://img.shields.io/badge/Thread-000000?style=flat&logo=threads&logoColor=white"/>
 
 <!--
 https://www.d5br5.dev/blog/pro_tip/tech_stack_icon  // 기술스택 뱃지 활용법 블로그
